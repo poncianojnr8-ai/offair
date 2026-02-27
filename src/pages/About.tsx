@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import Trending from "../components/news/Trending";
+import Trending from "../components/News/Trending";
 import postImg from "../assets/images/main-bg.png";
 import { Search } from "lucide-react";
 
