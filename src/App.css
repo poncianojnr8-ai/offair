@@ -1,0 +1,197 @@
+@import "tailwindcss";
+
+:root {
+  /* Core Colors */
+  --pure-black: #000000;
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #121212;
+  --bg-card: #1c1c1c;
+
+  --main: #de2c2c;
+  --main-dark: #8b1c1c;
+  --main-light: #ff4d4d;
+
+  /* Opacity Variants */
+  --main-opacity: rgba(222, 44, 44, 0.8);
+  --mid-opacity: rgba(222, 44, 44, 0.4);
+  --light-opacity: rgba(222, 44, 44, 0.1);
+
+  /* Typography & UI */
+  --text-primary: #ffffff;
+  --text-secondary: #a3a3a3;
+  --text-muted: #737373;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --border-red: rgba(222, 44, 44, 0.3);
+
+  /* Responsive spacing */
+  --section-px: 1rem;
+
+  --card-transition: 800ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tablet */
+@media (min-width: 640px) {
+  :root {
+    --section-px: 2rem;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  :root {
+    --section-px: 100px;
+  }
+}
+
+/* Reset Vite defaults */
+#root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: "Encode Sans", sans-serif;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--main);
+}
+
+/* Links */
+a {
+  color: var(--text-primary);
+  transition: all 0.3s ease;
+}
+
+a:hover {
+  color: var(--main);
+}
+
+/* Post body rich text styles */
+.prose-content h1,
+.prose-content h2,
+.prose-content h3 {
+  color: #ffffff;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.prose-content h1 { font-size: 2rem; }
+.prose-content h2 { font-size: 1.5rem; }
+.prose-content h3 { font-size: 1.25rem; }
+
+.prose-content p {
+  margin-bottom: 1.5rem;
+}
+
+.prose-content strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.prose-content em {
+  font-style: italic;
+}
+
+.prose-content ul,
+.prose-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.prose-content ul {
+  list-style-type: disc;
+}
+
+.prose-content ol {
+  list-style-type: decimal;
+}
+
+.prose-content li {
+  margin-bottom: 0.4rem;
+}
+
+.prose-content blockquote {
+  border-left: 3px solid var(--main);
+  padding-left: 1.25rem;
+  margin: 2rem 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* TipTap editor styles */
+.tiptap-editor .ProseMirror {
+  outline: none;
+  min-height: 300px;
+  color: #ffffff;
+  line-height: 1.7;
+}
+
+.tiptap-editor .ProseMirror p {
+  margin-bottom: 1rem;
+}
+
+.tiptap-editor .ProseMirror h1,
+.tiptap-editor .ProseMirror h2,
+.tiptap-editor .ProseMirror h3 {
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tiptap-editor .ProseMirror h1 { font-size: 1.75rem; }
+.tiptap-editor .ProseMirror h2 { font-size: 1.4rem; }
+.tiptap-editor .ProseMirror h3 { font-size: 1.15rem; }
+
+.tiptap-editor .ProseMirror ul,
+.tiptap-editor .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.tiptap-editor .ProseMirror ul { list-style-type: disc; }
+.tiptap-editor .ProseMirror ol { list-style-type: decimal; }
+
+.tiptap-editor .ProseMirror blockquote {
+  border-left: 3px solid var(--main);
+  padding-left: 1.25rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  margin: 1.5rem 0;
+}
+
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
