@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import logo from "../../assets/images/logo.png";
+import logo from "../../../assets/images/logo.png";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const location = useLocation();
+
+  const forceDark = location.pathname.startsWith("/posts/");
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -15,10 +18,9 @@ const Navbar = () => {
 
   return (
     <>
-      {/* NAVBAR (DESKTOP UNCHANGED) */}
       <nav
         className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 py-2 ${
-          isScrolled || open
+          forceDark || isScrolled || open
             ? "bg-[var(--bg-primary)] border-b border-[var(--border-color)] shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
             : "bg-transparent border-b border-transparent"
         }`}
@@ -28,17 +30,16 @@ const Navbar = () => {
         }}
       >
         <div className="flex items-center justify-between w-full">
-          {/* LEFT LINKS (desktop) */}
           <div className="hidden lg:flex gap-8">
             <Link className="text-sm uppercase tracking-widest" to="/">
               Home
             </Link>
+          </div>
+          <div>
             <Link className="text-sm uppercase tracking-widest" to="/about">
               About
             </Link>
           </div>
-
-          {/* LOGO */}
           <Link to="/" className="flex-shrink-0">
             <img
               src={logo}
@@ -48,18 +49,18 @@ const Navbar = () => {
               }`}
             />
           </Link>
-
-          {/* RIGHT LINKS (desktop) */}
           <div className="hidden lg:flex gap-8">
             <Link className="text-sm uppercase tracking-widest" to="/team">
               Meet The Team
             </Link>
+          </div>
+          <div>
             <Link className="text-sm uppercase tracking-widest" to="/contact">
               Contact
             </Link>
           </div>
 
-          {/* MOBILE OPEN */}
+          {/* Mobile menu */}
           <button
             onClick={() => setOpen(true)}
             className="lg:hidden text-white"
@@ -70,12 +71,11 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* MOBILE STRIPED CURTAIN */}
+      {/* Mobile menu */}
       <div
         className={`fixed inset-0 z-40 transition-transform duration-500 ease-in-out
         ${open ? "translate-y-0" : "-translate-y-full"}`}
       >
-        {/* STRIPED BACKGROUND */}
         <div
           className="absolute inset-0"
           style={{
@@ -92,7 +92,6 @@ const Navbar = () => {
           }}
         />
 
-        {/* CLOSE BUTTON */}
         <button
           onClick={() => setOpen(false)}
           className="absolute top-6 right-6 z-50 text-white"
@@ -101,7 +100,6 @@ const Navbar = () => {
           <X size={34} />
         </button>
 
-        {/* MENU CONTENT */}
         <div className="relative z-10 h-full flex flex-col items-center justify-center gap-10 text-2xl uppercase tracking-widest">
           <Link to="/" onClick={() => setOpen(false)}>
             Home

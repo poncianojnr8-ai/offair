@@ -1,19 +1,19 @@
 import type { ReactNode } from "react";
-import Navbar from "./Navbar";
-import Footer from "./Footer";
+import { Outlet } from "react-router-dom";
+import Navbar from "./Navigation/Navbar";
+import Footer from "./Navigation/Footer";
 
 interface LayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
   return (
     <div className="flex flex-col min-h-screen w-full">
       <Navbar />
-
-      {/* Main must NOT have max-width or padding */}
-      <main className="flex-grow w-full">{children}</main>
-
+      <main className="flex-grow w-full">
+        {children ? children : <Outlet />}
+      </main>
       <Footer />
     </div>
   );

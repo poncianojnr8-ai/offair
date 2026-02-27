@@ -92,3 +92,106 @@ a {
 a:hover {
   color: var(--main);
 }
+
+/* Post body rich text styles */
+.prose-content h1,
+.prose-content h2,
+.prose-content h3 {
+  color: #ffffff;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+}
+
+.prose-content h1 { font-size: 2rem; }
+.prose-content h2 { font-size: 1.5rem; }
+.prose-content h3 { font-size: 1.25rem; }
+
+.prose-content p {
+  margin-bottom: 1.5rem;
+}
+
+.prose-content strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.prose-content em {
+  font-style: italic;
+}
+
+.prose-content ul,
+.prose-content ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.prose-content ul {
+  list-style-type: disc;
+}
+
+.prose-content ol {
+  list-style-type: decimal;
+}
+
+.prose-content li {
+  margin-bottom: 0.4rem;
+}
+
+.prose-content blockquote {
+  border-left: 3px solid var(--main);
+  padding-left: 1.25rem;
+  margin: 2rem 0;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+}
+
+/* TipTap editor styles */
+.tiptap-editor .ProseMirror {
+  outline: none;
+  min-height: 300px;
+  color: #ffffff;
+  line-height: 1.7;
+}
+
+.tiptap-editor .ProseMirror p {
+  margin-bottom: 1rem;
+}
+
+.tiptap-editor .ProseMirror h1,
+.tiptap-editor .ProseMirror h2,
+.tiptap-editor .ProseMirror h3 {
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tiptap-editor .ProseMirror h1 { font-size: 1.75rem; }
+.tiptap-editor .ProseMirror h2 { font-size: 1.4rem; }
+.tiptap-editor .ProseMirror h3 { font-size: 1.15rem; }
+
+.tiptap-editor .ProseMirror ul,
+.tiptap-editor .ProseMirror ol {
+  padding-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.tiptap-editor .ProseMirror ul { list-style-type: disc; }
+.tiptap-editor .ProseMirror ol { list-style-type: decimal; }
+
+.tiptap-editor .ProseMirror blockquote {
+  border-left: 3px solid var(--main);
+  padding-left: 1.25rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-style: italic;
+  margin: 1.5rem 0;
+}
+
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: rgba(255, 255, 255, 0.2);
+  pointer-events: none;
+  float: left;
+  height: 0;
+}
