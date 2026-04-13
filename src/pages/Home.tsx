@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import { db } from "../firebase";
 import {
   collection,
@@ -52,10 +53,29 @@ type PickData = {
 
 const TRENDS_PER_PAGE = 3;
 
+// Hero slides are configurable here.
+// To change/update hero images, replace `image` values with your own asset imports or URL.
+// Example: image: require("../assets/images/hero-1.jpg") or import hero1 from "../assets/images/hero-1.jpg".
+// Link route supports story/post links via `link` (hero click target).
 const slides = [
-  { title: "WELCOME TO OFF AIR", subtitle: "THE PELICANS" },
-  { title: "UNFILTERED NOISE", subtitle: "LONDON UNDERGROUND" },
-  { title: "BLOOD & VINYL", subtitle: "LATE NIGHT SESSIONS" },
+  {
+    title: "WELCOME TO OFF AIR",
+    subtitle: "THE PELICANS",
+    link: "/posts/welcome-to-off-air",
+    image: bgImage,
+  },
+  {
+    title: "UNFILTERED NOISE",
+    subtitle: "LONDON UNDERGROUND",
+    link: "/posts/unfiltered-noise",
+    image: bgImage,
+  },
+  {
+    title: "BLOOD & VINYL",
+    subtitle: "LATE NIGHT SESSIONS",
+    link: "/posts/blood-vinyl",
+    image: bgImage,
+  },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -202,36 +222,47 @@ const Home = () => {
 
   // ─────────────────────────────────────────────────────────────────────────
 
+  const hero = slides[currentSlide];
+
   return (
     <div className="w-full">
 
       {/* ── Hero Slider ──────────────────────────────────────────────────── */}
-      <section className="relative h-screen w-full overflow-hidden flex items-center justify-center p-0">
+      <section className="relative h-[80vh] sm:h-screen w-full overflow-hidden flex items-center justify-center p-0">
         <div className="absolute inset-0 z-0">
           <img
-            src={bgImage}
+            src={hero.image}
             alt="Background"
             className="w-full h-full object-cover grayscale opacity-50"
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg-primary)] via-transparent to-[var(--bg-primary)]" />
+          <div className="absolute inset-0 bg-linear-to-b from-(--bg-primary) via-transparent to-(--bg-primary)" />
         </div>
 
-        <div className="relative z-10 w-full px-[var(--section-px)] text-center">
-          <h1 className="uppercase font-[var(--style-font)] text-white tracking-tighter leading-[0.9] text-[2rem] sm:text-[3rem] md:text-[4rem] lg:text-[6rem]">
-            {slides[currentSlide].title}
+        <div className="relative z-10 w-full px-(--section-px) text-center">
+          <h1 className="uppercase font-(--style-font) text-white tracking-tighter leading-[0.9] text-[1.4rem] sm:text-[2.5rem] md:text-[4rem] lg:text-[6rem]">
+            {hero.title}
           </h1>
-          <p className="font-black uppercase mt-4 tracking-[0.3em] sm:tracking-[0.5em] md:tracking-[0.8em] text-[0.6rem] sm:text-xs md:text-sm">
-            {slides[currentSlide].subtitle}
-          </p>
+          {hero.link ? (
+            <Link
+              to={hero.link}
+              className="font-black uppercase mt-4 tracking-[0.3em] sm:tracking-[0.5em] md:tracking-[0.8em] text-[0.65rem] sm:text-xs md:text-sm text-(--main) hover:text-white transition-colors duration-300 cursor-pointer inline-block no-underline"
+            >
+              {hero.subtitle}
+            </Link>
+          ) : (
+            <p className="font-black uppercase mt-4 tracking-[0.3em] sm:tracking-[0.5em] md:tracking-[0.8em] text-[0.65rem] sm:text-xs md:text-sm">
+              {hero.subtitle}
+            </p>
+          )}
         </div>
 
-        <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-4 z-20">
+        <div className="absolute bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 flex gap-4 z-20">
           {slides.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
-              className={`w-2 h-2 md:w-3 md:h-3 rounded-full shrink-0 p-0 border-0 transition-all duration-300 ${
+              className={`w-3 h-3 md:w-3.5 md:h-3.5 rounded-full shrink-0 p-0 border-0 transition-all duration-300 ${
                 currentSlide === index
                   ? "bg-white scale-125"
                   : "bg-white/30 hover:bg-white/60"
@@ -241,10 +272,10 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── Posts & Sidebar ──────────────────────────────────────────────── */}
-      <section className="w-full bg-[var(--bg-primary)] py-[100px]">
+       {/* ── Posts & Sidebar ──────────────────────────────────────────────── */}
+      <section className="w-full bg-[var(--bg-primary)] py-12.5 md:py-25">
         <div className="w-full px-[var(--section-px)]">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 items-start">
 
             {/* Latest Articles */}
             <div className="lg:col-span-2 flex flex-col gap-14 bg-[var(--bg-secondary)] p-6 sm:p-8 lg:p-10">
@@ -271,108 +302,157 @@ const Home = () => {
             </div>
 
             {/* Sidebar */}
-            <div className="flex lg:col-span-1 flex-col gap-8 h-fit">
+            <div className="hidden lg:block lg:col-span-1">
+              <div className="sticky top-24 self-start">
+                <div className="flex flex-col gap-8">
+                  {/* Trending */}
+                  <div className="flex flex-col gap-10 bg-[var(--bg-secondary)] p-6 sm:p-8 lg:p-10">
+                    <div className="flex flex-col gap-5">
+                      <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit">
+                        Trending
+                      </h3>
 
-              {/* Trending */}
-              <div className="flex flex-col gap-10 bg-[var(--bg-secondary)] p-6 sm:p-8 lg:p-10">
-                <div className="flex flex-col gap-5">
-                  <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit">
-                    Trending
-                  </h3>
+                      <div className="relative w-full">
+                        <Search
+                          size={18}
+                          className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40"
+                        />
+                        <input
+                          value={trendSearch}
+                          onChange={(e) => setTrendSearch(e.target.value)}
+                          placeholder="Search trends..."
+                          className="w-full bg-black/30 border border-white/10 text-white placeholder:text-white/30 pl-12 pr-4 py-3 outline-none focus:border-[var(--main)] transition-all"
+                        />
+                      </div>
+                    </div>
 
-                  <div className="relative w-full">
-                    <Search
-                      size={18}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-white/40"
-                    />
-                    <input
-                      value={trendSearch}
-                      onChange={(e) => setTrendSearch(e.target.value)}
-                      placeholder="Search trends..."
-                      className="w-full bg-black/30 border border-white/10 text-white placeholder:text-white/30 pl-12 pr-4 py-3 outline-none focus:border-[var(--main)] transition-all"
-                    />
-                  </div>
-                </div>
-
-                {loadingTrends ? (
-                  <p className="text-white/20 animate-pulse uppercase tracking-widest text-xs">
-                    Receiving Signal...
-                  </p>
-                ) : pagedTrends.length === 0 ? (
-                  <p className="text-white/20 italic text-xs uppercase tracking-widest">
-                    No trending items yet.
-                  </p>
-                ) : (
-                  <div className="flex flex-col gap-8">
-                    {pagedTrends.map((trend) => (
-                      <Trending key={trend.id} {...trend} />
-                    ))}
-                  </div>
-                )}
-
-                {!loadingTrends && filteredTrends.length > TRENDS_PER_PAGE && (
-                  <div className="flex items-center justify-between pt-2">
-                    <p className="text-white/50 text-xs uppercase tracking-[0.25em]">
-                      Page {trendPage} / {totalTrendPages}
-                    </p>
-                    <button
-                      onClick={() =>
-                        setTrendPage((prev) =>
-                          prev >= totalTrendPages ? 1 : prev + 1
-                        )
-                      }
-                      className="text-white font-black uppercase tracking-widest text-sm hover:text-[var(--main)] transition-all"
-                    >
-                      Next →
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* PJ's Pick */}
-              <div className="flex flex-col gap-6 bg-[var(--bg-secondary)] p-6 sm:p-8 lg:p-10">
-                <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit">
-                  PJ's Pick
-                </h3>
-
-                {loadingPicks ? (
-                  <p className="text-white/20 animate-pulse uppercase tracking-widest text-xs">
-                    Receiving Signal...
-                  </p>
-                ) : picks.length === 0 ? (
-                  <p className="text-white/20 italic text-xs uppercase tracking-widest">
-                    No picks yet.
-                  </p>
-                ) : (
-                  <>
-                    <Picks {...picks[currentPick]} />
-
-                    {picks.length > 1 && (
-                      <div className="flex gap-2 pt-1">
-                        {picks.map((_, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setCurrentPick(index)}
-                            aria-label={`Pick ${index + 1}`}
-                            className={`h-[3px] flex-1 transition-all duration-300 ${
-                              currentPick === index
-                                ? "bg-[var(--main)]"
-                                : "bg-white/15 hover:bg-white/30"
-                            }`}
-                          />
+                    {loadingTrends ? (
+                      <p className="text-white/20 animate-pulse uppercase tracking-widest text-xs">
+                        Receiving Signal...
+                      </p>
+                    ) : pagedTrends.length === 0 ? (
+                      <p className="text-white/20 italic text-xs uppercase tracking-widest">
+                        No trending items yet.
+                      </p>
+                    ) : (
+                      <div className="flex flex-col gap-8">
+                        {pagedTrends.map((trend) => (
+                          <Trending key={trend.id} {...trend} />
                         ))}
                       </div>
                     )}
-                  </>
-                )}
+
+                    {!loadingTrends && filteredTrends.length > TRENDS_PER_PAGE && (
+                      <div className="flex items-center justify-between pt-2">
+                        <p className="text-white/50 text-xs uppercase tracking-[0.25em]">
+                          Page {trendPage} / {totalTrendPages}
+                        </p>
+                        <button
+                          onClick={() =>
+                            setTrendPage((prev) =>
+                              prev >= totalTrendPages ? 1 : prev + 1
+                            )
+                          }
+                          className="text-white font-black uppercase tracking-widest text-sm hover:text-[var(--main)] transition-all"
+                        >
+                          Next →
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PJ Picks */}
+                  <div className="flex flex-col gap-6 bg-[var(--bg-secondary)] p-6 sm:p-8 lg:p-10">
+                    <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit">
+                      PJ's Picks
+                    </h3>
+
+                    <p className="text-white/70 text-sm">
+                      Latest curated playlist from PJ — tap play to listen.
+                    </p>
+
+                    <div className="w-full overflow-hidden border border-white/30">
+                      <iframe
+                        title="PJ Picks Spotify"
+                        src="https://open.spotify.com/embed/playlist/5pSWKL6FXEwe1lXNAZBrtz"
+                        width="100%"
+                        height="400"
+                        loading="lazy"
+                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                        className="border-none block"
+                      />
+                    </div>
+                  </div>
+
+                </div>
               </div>
             </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* ── Social Media Feed Placeholders ───────────────────────────────── */}
+      <section className="w-full bg-[var(--bg-primary)] py-12 sm:py-20">
+        <div className="w-full px-[var(--section-px)]">
+          <div className="text-center mb-8 sm:mb-12">
+            <span className="text-[var(--main)] text-[10px] uppercase tracking-[0.4em] font-black">
+              Social
+            </span>
+            <h2 className="font-[var(--style-font)] text-white tracking-tighter text-[2rem] sm:text-[3rem] leading-tight mt-3">
+              FOLLOW THE SIGNAL
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8">
+
+            {/* TikTok */}
+            <div className="bg-[var(--bg-secondary)] border border-white/5 p-8 flex flex-col gap-6 min-h-[400px]">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center text-white/60">
+                  <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.68v13.7a2.4 2.4 0 0 1-2.54 2.4 2.4 2.4 0 0 1-2.54-2.4 2.4 2.4 0 0 1 2.54-2.4c.09 0 .18 0 .27.02V9.49c-.17-.02-.34-.02-.5-.02A5.7 5.7 0 0 0 1 15.38a5.7 5.7 0 0 0 5.7 5.7 5.7 5.7 0 0 0 5.7-5.7V9.93a7.38 7.38 0 0 0 4.58 1.62V8.17a4.83 4.83 0 0 1-3.39-1.48z"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-white text-sm font-bold uppercase tracking-widest">
+                    TikTok
+                  </p>
+                  <p className="text-white/30 text-[10px] uppercase tracking-widest">
+                    @poncianojnr8
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex-1 flex items-center justify-center">
+                <iframe
+                  title="TikTok Profile"
+                  src="https://www.tiktok.com/embed/v2/@poncianojnr8"
+                  width="100%"
+                  height="300"
+                  frameBorder="0"
+                  allow="autoplay; encrypted-media"
+                  className="border-0"
+                />
+              </div>
+
+              <a
+                href="https://www.tiktok.com/@poncianojnr8"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[var(--main)] text-xs uppercase tracking-widest font-black hover:text-white transition-colors"
+              >
+                Follow us on TikTok →
+              </a>
+            </div>
+
+
           </div>
         </div>
       </section>
 
       {/* ── Newsletter Signup ─────────────────────────────────────────────── */}
-      <section className="w-full bg-[var(--bg-secondary)] py-20">
+      <section className="w-full bg-[var(--bg-secondary)] py-12 sm:py-20">
         <div className="w-full px-[var(--section-px)] max-w-3xl mx-auto text-center">
           <span className="text-[var(--main)] text-[10px] uppercase tracking-[0.4em] font-black">
             Stay Connected
@@ -424,91 +504,6 @@ const Home = () => {
               Something went wrong. Please try again.
             </p>
           )}
-        </div>
-      </section>
-
-      {/* ── Social Media Feed Placeholders ───────────────────────────────── */}
-      <section className="w-full bg-[var(--bg-primary)] py-20">
-        <div className="w-full px-[var(--section-px)]">
-          <div className="text-center mb-12">
-            <span className="text-[var(--main)] text-[10px] uppercase tracking-[0.4em] font-black">
-              Social
-            </span>
-            <h2 className="font-[var(--style-font)] text-white tracking-tighter text-[2rem] sm:text-[3rem] leading-tight mt-3">
-              FOLLOW THE SIGNAL
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-
-            {/* Twitter / X */}
-            <div className="bg-[var(--bg-secondary)] border border-white/5 p-8 flex flex-col gap-6 min-h-[400px]">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center text-white/60">
-                  <XIcon size={18} />
-                </div>
-                <div>
-                  <p className="text-white text-sm font-bold uppercase tracking-widest">
-                    Twitter / X
-                  </p>
-                  <p className="text-white/30 text-[10px] uppercase tracking-widest">
-                    @offair
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex-1 flex flex-col gap-4">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="border-b border-white/5 pb-4 last:border-0">
-                    <div className="h-3 bg-white/5 rounded w-full mb-2" />
-                    <div className="h-3 bg-white/5 rounded w-3/4 mb-2" />
-                    <div className="h-2 bg-white/[0.03] rounded w-1/3" />
-                  </div>
-                ))}
-              </div>
-
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[var(--main)] text-xs uppercase tracking-widest font-black hover:text-white transition-colors"
-              >
-                Follow us on X →
-              </a>
-            </div>
-
-            {/* Instagram */}
-            <div className="bg-[var(--bg-secondary)] border border-white/5 p-8 flex flex-col gap-6 min-h-[400px]">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center text-white/60">
-                  <InstagramIcon size={18} />
-                </div>
-                <div>
-                  <p className="text-white text-sm font-bold uppercase tracking-widest">
-                    Instagram
-                  </p>
-                  <p className="text-white/30 text-[10px] uppercase tracking-widest">
-                    @offair
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex-1 grid grid-cols-3 gap-2">
-                {Array.from({ length: 9 }).map((_, i) => (
-                  <div key={i} className="aspect-square bg-white/5 rounded" />
-                ))}
-              </div>
-
-              <a
-                href="https://instagram.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-[var(--main)] text-xs uppercase tracking-widest font-black hover:text-white transition-colors"
-              >
-                Follow us on Instagram →
-              </a>
-            </div>
-          </div>
         </div>
       </section>
 

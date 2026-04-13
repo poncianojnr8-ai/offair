@@ -27,6 +27,7 @@ import {
   Heading2,
   Heading3,
   Quote,
+  Video as VideoIcon,
 } from "lucide-react";
 
 const ToolbarButton = ({
@@ -56,7 +57,18 @@ interface Category {
   name: string;
 }
 
-const CreateEditPost = () => {
+interface HeroPostData {
+  id: string;
+  title: string;
+  category: string;
+  date: string;
+  image: string;
+  videoUrl?: string;
+  body?: string;
+  hasVideo?: boolean;
+}
+
+const CreateEditHeroPost = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
@@ -68,15 +80,32 @@ const CreateEditPost = () => {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string>("");
+  const [videoUrl, setVideoUrl] = useState("");
+  const [existingVideoUrl, setExistingVideoUrl] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingPost, setLoadingPost] = useState(isEditMode);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const editor = useEditor({
     extensions: [
       StarterKit,
       Image.configure({
-        inline: true,
-        allowBase64: true,
+        inline: false,
+        allowBase64: false,
+        uploadImage: async (file: File) => {
+          try {
+            const storageRef = ref(
+              storage,
+              `hero-posts/content/${Date.now()}_${file.name}`
+            );
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
+            return url;
+          } catch (error) {
+            console.error("Error uploading image:", error);
+            throw error;
+          }
+        },
       }),
     ],
     content: "",
@@ -117,7 +146,7 @@ const CreateEditPost = () => {
 
     const fetchPost = async () => {
       try {
-        const docRef = doc(db, "posts", id);
+        const docRef = doc(db, "heroPosts", id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
@@ -125,12 +154,14 @@ const CreateEditPost = () => {
           setCategory(data.category || "");
           setExistingImageUrl(data.image || "");
           setImagePreview(data.image || "");
+          setVideoUrl(data.videoUrl || "");
+          setExistingVideoUrl(data.videoUrl || "");
           if (data.body) {
             editor.commands.setContent(data.body);
           }
         }
       } catch (error) {
-        console.error("Error loading post:", error);
+        console.error("Error loading hero post:", error);
       } finally {
         setLoadingPost(false);
       }
@@ -150,6 +181,54 @@ const CreateEditPost = () => {
     []
   );
 
+  const handleInlineImageUpload = useCallback(
+    async (file: File) => {
+      setUploadingImage(true);
+      try {
+        const storageRef = ref(
+          storage,
+          `hero-posts/content/${Date.now()}_${file.name}`
+        );
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        editor?.chain().focus().setImage({ src: url }).run();
+      } catch (error) {
+        console.error("Error uploading inline image:", error);
+        alert("Failed to upload image. Please try again.");
+      } finally {
+        setUploadingImage(false);
+      }
+    },
+    [editor]
+  );
+
+  const handleEmbedVideo = useCallback(() => {
+    if (!videoUrl.trim()) return;
+
+    // Extract YouTube video ID
+    let embedUrl = videoUrl;
+    let videoId = "";
+
+    // YouTube URL patterns
+    const youtubePatterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\s?#]+)/,
+    ];
+
+    for (const pattern of youtubePatterns) {
+      const match = videoUrl.match(pattern);
+      if (match) {
+        videoId = match[1];
+        embedUrl = `https://www.youtube.com/embed/${videoId}`;
+        break;
+      }
+    }
+
+    // Create iframe HTML
+    const iframeHtml = `<iframe src="${embedUrl}" width="560" height="315" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full aspect-video my-4 rounded"></iframe>`;
+
+    editor?.chain().focus().insertContent(iframeHtml).run();
+  }, [videoUrl, editor]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -161,12 +240,13 @@ const CreateEditPost = () => {
     setIsSubmitting(true);
     try {
       let imageUrl = existingImageUrl;
+      let finalVideoUrl = existingVideoUrl || (videoUrl.trim() || undefined);
 
-      // Upload new image if selected
+      // Upload new cover image if selected
       if (imageFile) {
         const storageRef = ref(
           storage,
-          `posts/${Date.now()}_${imageFile.name}`
+          `hero-posts/${Date.now()}_${imageFile.name}`
         );
         await uploadBytes(storageRef, imageFile);
         imageUrl = await getDownloadURL(storageRef);
@@ -174,28 +254,27 @@ const CreateEditPost = () => {
 
       const body = editor?.getHTML() ?? "";
 
+      const postData = {
+        title,
+        category,
+        image: imageUrl,
+        videoUrl: finalVideoUrl,
+        body,
+        hasVideo: !!finalVideoUrl,
+        date: new Date().toLocaleDateString("en-GB"),
+        createdAt: serverTimestamp(),
+      };
+
       if (isEditMode && id) {
-        await updateDoc(doc(db, "posts", id), {
-          title,
-          category,
-          image: imageUrl,
-          body,
-        });
+        await updateDoc(doc(db, "heroPosts", id), postData);
       } else {
-        await addDoc(collection(db, "posts"), {
-          title,
-          category,
-          image: imageUrl,
-          body,
-          date: new Date().toLocaleDateString("en-GB"),
-          createdAt: serverTimestamp(),
-        });
+        await addDoc(collection(db, "heroPosts"), postData);
       }
 
-      navigate("/admin/posts");
+      navigate("/admin/hero-posts");
     } catch (error) {
-      console.error("Error saving post:", error);
-      alert("Failed to save article. Please try again.");
+      console.error("Error saving hero post:", error);
+      alert("Failed to save hero post. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -218,13 +297,13 @@ const CreateEditPost = () => {
         <div className="flex items-center gap-4">
           <button
             type="button"
-            onClick={() => navigate("/admin/posts")}
+            onClick={() => navigate("/admin/hero-posts")}
             className="text-white/40 hover:text-white transition-colors"
           >
             <ArrowLeft size={20} />
           </button>
           <h1 className="text-3xl font-[var(--style-font)] text-white tracking-tighter">
-            {isEditMode ? "EDIT ARTICLE" : "NEW ARTICLE"}
+            {isEditMode ? "EDIT HERO POST" : "NEW HERO POST"}
           </h1>
         </div>
       </div>
@@ -242,7 +321,7 @@ const CreateEditPost = () => {
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Article title..."
+                placeholder="Hero post title..."
                 className="w-full bg-[var(--bg-secondary)] border border-white/10 p-4 text-white text-lg outline-none focus:border-[var(--main)] transition-all"
               />
             </div>
@@ -322,44 +401,40 @@ const CreateEditPost = () => {
                   >
                     <Quote size={15} />
                   </ToolbarButton>
-                  <div className="w-px h-5 bg-white/10 mx-1" />
-                  <ToolbarButton
-                    onClick={() => {
-                      const fileInput = document.querySelector(
-                        '#image-upload-input'
-                      ) as HTMLInputElement;
-                      if (fileInput) fileInput.click();
-                    }}
-                    active={false}
-                  >
-                    <ImageIcon size={15} />
-                  </ToolbarButton>
-                  <input
-                    id="image-upload-input"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file && editor) {
-                        try {
-                          const storageRef = ref(storage, `posts/content/${Date.now()}_${file.name}`);
-                          await uploadBytes(storageRef, file);
-                          const url = await getDownloadURL(storageRef);
-                          editor.chain().focus().setImage({ src: url }).run();
-                        } catch (error) {
-                          console.error("Error uploading image:", error);
-                          alert("Failed to upload image.");
-                        }
-                      }
-                      e.target.value = "";
-                    }}
-                  />
                 </div>
 
                 {/* Editor Area */}
                 <div className="tiptap-editor text-white/80">
                   <EditorContent editor={editor} />
+                </div>
+
+                {/* Image Upload Toolbar */}
+                <div className="flex items-center gap-4 p-3 border-t border-white/10">
+                  <label className="flex items-center gap-2 px-3 py-2 bg-black/30 hover:bg-black/50 rounded transition-all cursor-pointer text-white/60 hover:text-white text-xs uppercase tracking-widest">
+                    <ImageIcon size={14} />
+                    {uploadingImage ? "Uploading..." : "Insert Image"}
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          handleInlineImageUpload(file);
+                        }
+                      }}
+                      disabled={uploadingImage}
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={handleEmbedVideo}
+                    className="flex items-center gap-2 px-3 py-2 bg-black/30 hover:bg-black/50 rounded transition-all text-white/60 hover:text-white text-xs uppercase tracking-widest"
+                  >
+                    <VideoIcon size={14} />
+                    Embed Video
+                  </button>
                 </div>
               </div>
             </div>
@@ -442,6 +517,23 @@ const CreateEditPost = () => {
               </label>
             </div>
 
+            {/* Video URL (Optional) */}
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
+                Video URL <span className="text-white/20 normal-case">(optional)</span>
+              </label>
+              <input
+                type="url"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                placeholder="https://youtube.com/watch?v=..."
+                className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white outline-none focus:border-[var(--main)] transition-all text-sm"
+              />
+              <p className="text-[10px] text-white/20 tracking-wide">
+                Paste YouTube URL to embed video in post
+              </p>
+            </div>
+
             {/* Submit */}
             <button
               type="submit"
@@ -451,9 +543,9 @@ const CreateEditPost = () => {
               {isSubmitting ? (
                 <Loader2 className="animate-spin" size={18} />
               ) : isEditMode ? (
-                "Update Article"
+                "Update Hero Post"
               ) : (
-                "Broadcast Article"
+                "Broadcast Hero Post"
               )}
             </button>
           </div>
@@ -463,4 +555,4 @@ const CreateEditPost = () => {
   );
 };
 
-export default CreateEditPost;
+export default CreateEditHeroPost;

@@ -104,9 +104,15 @@ a:hover {
   line-height: 1.2;
 }
 
-.prose-content h1 { font-size: 2rem; }
-.prose-content h2 { font-size: 1.5rem; }
-.prose-content h3 { font-size: 1.25rem; }
+.prose-content h1 { font-size: 1.5rem; }
+.prose-content h2 { font-size: 1.25rem; }
+.prose-content h3 { font-size: 1.1rem; }
+
+@media (min-width: 640px) {
+  .prose-content h1 { font-size: 2rem; }
+  .prose-content h2 { font-size: 1.5rem; }
+  .prose-content h3 { font-size: 1.25rem; }
+}
 
 .prose-content p {
   margin-bottom: 1.5rem;

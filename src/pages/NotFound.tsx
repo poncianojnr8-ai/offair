@@ -4,8 +4,8 @@ const NotFound = () => {
   return (
     <>
       <div className="h-screen flex flex-col items-center justify-center bg-[var(--bg-primary)] text-white">
-        <h1 className="text-9xl font-black text-[var(--main)]">404</h1>
-        <p className="text-xl uppercase tracking-widest mt-4">
+        <h1 className="text-7xl sm:text-8xl md:text-9xl font-black text-[var(--main)]">404</h1>
+        <p className="text-base sm:text-xl uppercase tracking-widest mt-4">
           Static in the Signal
         </p>
         <Link

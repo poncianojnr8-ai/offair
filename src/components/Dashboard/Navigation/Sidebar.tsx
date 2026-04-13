@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   FileText,
@@ -7,13 +7,22 @@ import {
   Tag,
   LogOut,
 } from "lucide-react";
+import { signOut } from "firebase/auth";
+import { auth } from "../../../firebase";
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    navigate("/admin/login", { replace: true });
+  };
 
   const menuItems = [
     { name: "Overview", path: "/admin", icon: <LayoutDashboard size={20} /> },
     { name: "Posts", path: "/admin/posts", icon: <FileText size={20} /> },
+    { name: "Hero Posts", path: "/admin/hero-posts", icon: <FileText size={20} /> },
     {
       name: "Categories",
       path: "/admin/categories",
@@ -24,7 +33,6 @@ const Sidebar = () => {
       path: "/admin/trending",
       icon: <TrendingUp size={20} />,
     },
-    { name: "PJ's Picks", path: "/admin/picks", icon: <Star size={20} /> },
   ];
 
   return (
@@ -62,7 +70,10 @@ const Sidebar = () => {
       </nav>
 
       <div className="p-4 border-t border-white/5">
-        <button className="flex items-center gap-4 px-4 py-3 w-full text-red-500 hover:bg-red-500/10 rounded-lg transition-all uppercase text-xs tracking-widest font-bold">
+        <button
+          onClick={handleSignOut}
+          className="flex items-center gap-4 px-4 py-3 w-full text-red-500 hover:bg-red-500/10 rounded-lg transition-all uppercase text-xs tracking-widest font-bold"
+        >
           <LogOut size={20} />
           Sign Out
         </button>

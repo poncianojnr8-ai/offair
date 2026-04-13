@@ -11,19 +11,19 @@ const Trending = ({ title, rank, image }: TrendingProps) => {
         <img
           src={image}
           alt={title}
-          className="w-full h-[220px] object-cover"
+          className="w-full h-45 sm:h-55 object-cover"
         />
 
         {/* Dark gradient bottom */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
 
         {/* Rank Top Right */}
-        <div className="absolute top-4 right-4 px-3 py-1 text-sm font-black tracking-widest uppercase bg-black/60 text-[var(--main)]">
+        <div className="absolute top-3 right-3 px-2 py-0.5 sm:px-3 sm:py-1 text-xs sm:text-sm font-black tracking-widest uppercase bg-black/60 text-[var(--main)]">
           #{rank}
         </div>
 
         {/* Title Bottom */}
-        <h3 className="absolute bottom-4 left-4 right-4 text-white font-bold uppercase tracking-tight text-lg leading-tight">
+        <h3 className="absolute bottom-4 left-4 right-4 text-white font-bold uppercase tracking-tight text-base sm:text-lg leading-tight">
           {title}
         </h3>
 

@@ -20,11 +20,11 @@ const Post = ({ id, title, category, date, image }: PostProps) => {
         <img
           src={image}
           alt={title}
-          className="w-full h-[320px] md:h-[500px] object-cover transition-transform duration-700 group-hover:scale-105"
+          className="w-full h-60 sm:h-90 md:h-125 object-cover transition-transform duration-700 group-hover:scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
 
-        <h1 className="absolute bottom-10 left-5 right-5 text-gray-300 group-hover:text-white transition-colors font-[600] tracking-tight leading-tight text-[1.6rem] md:text-[2rem] 2xl:text-[3.2rem]">
+        <h1 className="absolute bottom-10 left-5 right-5 text-gray-300 group-hover:text-white transition-colors font-[600] tracking-tight leading-tight text-[1.2rem] sm:text-[1.6rem] md:text-[2rem] 2xl:text-[3.2rem]">
           {title}
         </h1>
 

@@ -44,12 +44,12 @@ const About = () => {
 
   return (
     <div className="w-full">
-      <section className="w-full bg-[var(--bg-primary)] py-[150px]">
+      <section className="w-full bg-[var(--bg-primary)] py-20 sm:py-28 lg:py-37.5">
         <div className="w-full px-[var(--section-px)]">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 items-start">
-            <div className="lg:col-span-2 bg-[var(--bg-secondary)] p-10">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-12 items-start">
+            <div className="lg:col-span-2 bg-[var(--bg-secondary)] p-5 sm:p-8 lg:p-10">
               <div className="mb-10">
-                <h1 className="text-xl md:text-3xl font-bold tracking-tight text-white">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-white">
                   About Us
                 </h1>
                 <div className="mt-4 w-full h-[1px] bg-[var(--main)]" />
@@ -112,7 +112,7 @@ const About = () => {
               </div>
             </div>
 
-            <div className="hidden lg:flex lg:col-span-1 flex-col gap-10 bg-[var(--bg-secondary)] p-10 h-fit">
+            <div className="hidden lg:flex lg:col-span-1 flex-col gap-10 bg-[var(--bg-secondary)] p-5 sm:p-8 lg:p-10 h-fit">
               <div className="flex flex-col gap-5">
                 <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit">
                   Trending

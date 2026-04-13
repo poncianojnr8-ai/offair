@@ -18,31 +18,27 @@ const trends: TrendingData[] = [
   { title: "Underground Sessions Vol. 2", rank: 6, image: postImg },
 ];
 
-type TeamMember = {
-  name: string;
-  role: string;
-  bio: string;
-  image: string;
+type TeamVideo = {
+  title: string;
+  description: string;
+  embedUrl: string;
 };
 
-const team: TeamMember[] = [
+const teamVideos: TeamVideo[] = [
   {
-    name: "Ponciano",
-    role: "Founder / Host",
-    bio: "Leading Off Air with raw interviews, late-night sessions and underground energy.",
-    image: postImg,
+    title: "Ponciano: Founder Introduction",
+    description: "Off Air founder Ponciano shares the story and mission.",
+    embedUrl: "https://www.youtube.com/embed/ScMzIvxBSi4",
   },
   {
-    name: "Creative Director",
-    role: "Visuals & Branding",
-    bio: "Responsible for the Off Air identity, direction, and overall visual experience.",
-    image: postImg,
+    title: "Creative Director: Visual Storytelling",
+    description: "How the visual world and brand styling are built for Off Air.",
+    embedUrl: "https://www.youtube.com/embed/tgbNymZ7vqY",
   },
   {
-    name: "Producer",
-    role: "Audio / Sessions",
-    bio: "Capturing the sound exactly as it is — unfiltered, live, and authentic.",
-    image: postImg,
+    title: "Producer: Capturing the Sound",
+    description: "Behind the scenes of recording sessions and live audio mix.",
+    embedUrl: "https://www.youtube.com/embed/5qap5aO4i9A",
   },
 ];
 
@@ -89,33 +85,31 @@ const Team = () => {
                 </p>
               </div>
 
-              {/* Team Grid */}
+              {/* Team Videos */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                {team.map((member) => (
+                {teamVideos.map((video) => (
                   <div
-                    key={member.name}
+                    key={video.title}
                     className="border border-white/10 bg-black/20 overflow-hidden rounded-lg"
                   >
-                    <div className="relative">
-                      <img
-                        src={member.image}
-                        alt={member.name}
-                        className="w-full h-[260px] object-cover"
+                    <div className="w-full h-[260px]">
+                      <iframe
+                        className="w-full h-full"
+                        src={video.embedUrl}
+                        title={video.title}
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
                       />
-                      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[80%] h-[1px] bg-[var(--main)]" />
                     </div>
 
                     <div className="p-6">
                       <h4 className="text-white font-black uppercase tracking-tight text-xl">
-                        {member.name}
+                        {video.title}
                       </h4>
 
-                      <p className="text-[var(--main)] font-black uppercase tracking-widest text-xs mt-2">
-                        {member.role}
-                      </p>
-
                       <p className="text-white/70 mt-4 leading-relaxed">
-                        {member.bio}
+                        {video.description}
                       </p>
                     </div>
                   </div>

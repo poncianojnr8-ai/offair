@@ -1,19 +1,14 @@
-import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
+import { Link2, Check } from "lucide-react";
+import { useState, useEffect } from "react";
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { Link2, Check } from "lucide-react";
 
-// Inline SVGs for social share icons
+// ─── Inline share icons ───────────────────────────────────────────────────────
+
 const XShareIcon = () => (
   <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor">
     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
-
-const FacebookIcon = () => (
-  <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
   </svg>
 );
 
@@ -23,18 +18,24 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
-interface PostData {
+// ─── Types ────────────────────────────────────────────────────────────────
+
+interface PostContent {
   id: string;
   title: string;
   category: string;
   date: string;
   image: string;
+  videoUrl?: string;
   body?: string;
 }
 
-const PostDetail = () => {
-  const { id } = useParams<{ id: string }>();
-  const [post, setPost] = useState<PostData | null>(null);
+// ─── Component ────────────────────────────────────────────────────────────────
+
+const HeroPost = () => {
+  const { pathname } = useLocation();
+  const id = pathname.split("/").filter(Boolean).pop() ?? "";
+  const [post, setPost] = useState<PostContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -47,7 +48,6 @@ const PostDetail = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
       const el = document.createElement("input");
       el.value = pageUrl;
       document.body.appendChild(el);
@@ -63,17 +63,18 @@ const PostDetail = () => {
     if (!id) return;
 
     const fetchPost = async () => {
+      setLoading(true);
       try {
-        const docRef = doc(db, "posts", id);
+        const docRef = doc(db, "heroPosts", id);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          setPost({ id: docSnap.id, ...docSnap.data() } as PostData);
+          setPost({ id: docSnap.id, ...docSnap.data() } as PostContent);
         } else {
           setNotFound(true);
         }
       } catch (error) {
-        console.error("Error fetching post:", error);
+        console.error("Error fetching hero post:", error);
         setNotFound(true);
       } finally {
         setLoading(false);
@@ -110,54 +111,49 @@ const PostDetail = () => {
   }
 
   return (
-    <div className="w-full bg-[var(--bg-primary)]">
-      {/* Hero Image */}
+    <div className="w-full bg-(--bg-primary)">
+
+      {/* Hero image */}
       <div className="relative w-full h-[40vh] sm:h-[55vh] md:h-[75vh] overflow-hidden">
         <img
           src={post.image}
           alt={post.title}
           className="w-full h-full object-cover grayscale"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-black/40 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-(--bg-primary) via-black/40 to-transparent" />
       </div>
 
-      {/* Article Content */}
-      <div className="w-full px-[var(--section-px)] py-8 sm:py-12 md:py-16 max-w-4xl mx-auto">
+      {/* Article content */}
+      <div className="w-full px-(--section-px) py-8 sm:py-12 md:py-16 max-w-4xl mx-auto">
+
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-6 mb-5 sm:mb-6 text-xs uppercase tracking-[0.25em]">
-          <span className="bg-[var(--main)] text-white px-3 py-1 font-black">
+          <span className="bg-(--main) text-white px-3 py-1 font-black">
             {post.category}
           </span>
           <span className="text-white/40">{post.date}</span>
         </div>
 
         {/* Title */}
-        <h1 className="font-[var(--style-font)] text-white tracking-tighter leading-[0.95] text-[1.6rem] sm:text-[2.5rem] md:text-[4rem] mb-8 sm:mb-12">
+        <h1 className="font-(--style-font) text-white tracking-tighter leading-[0.95] text-[1.6rem] sm:text-[2.5rem] md:text-[4rem] mb-8 sm:mb-12">
           {post.title}
         </h1>
 
         {/* Divider */}
-        <div className="w-16 h-[2px] bg-[var(--main)] mb-12" />
+        <div className="w-16 h-0.5 bg-(--main) mb-10 sm:mb-12" />
 
         {/* Body */}
-        {post.body ? (
-          <div
-            className="prose-content text-white/75 leading-relaxed text-base md:text-lg"
-            dangerouslySetInnerHTML={{ __html: post.body }}
-          />
-        ) : (
-          <p className="text-white/30 italic tracking-widest text-sm uppercase">
-            No content available for this article.
-          </p>
-        )}
+        <div
+          className="prose-content text-white/75 leading-relaxed text-base md:text-lg"
+          dangerouslySetInnerHTML={{ __html: post.body }}
+        />
 
         {/* Share */}
-        <div className="mt-16 pt-8 border-t border-white/10">
+        <div className="mt-14 sm:mt-16 pt-8 border-t border-white/10">
           <p className="text-[10px] uppercase tracking-[0.3em] text-white/30 font-bold mb-5">
             Share this article
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            {/* Twitter / X */}
             <a
               href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(post.title)}`}
               target="_blank"
@@ -167,19 +163,6 @@ const PostDetail = () => {
               <XShareIcon />
               X
             </a>
-
-            {/* Facebook */}
-            <a
-              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/60 hover:text-white transition-all text-xs uppercase tracking-widest font-bold"
-            >
-              <FacebookIcon />
-              Facebook
-            </a>
-
-            {/* WhatsApp */}
             <a
               href={`https://wa.me/?text=${encodeURIComponent(post.title + " " + pageUrl)}`}
               target="_blank"
@@ -189,13 +172,11 @@ const PostDetail = () => {
               <WhatsAppIcon />
               WhatsApp
             </a>
-
-            {/* Copy Link */}
             <button
               onClick={handleCopy}
               className={`flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 border transition-all text-xs uppercase tracking-widest font-bold ${
                 copied
-                  ? "bg-[var(--main)]/10 border-[var(--main)] text-[var(--main)]"
+                  ? "bg-(--main)/10 border-(--main) text-(--main)"
                   : "bg-white/5 hover:bg-white/10 border-white/10 hover:border-white/20 text-white/60 hover:text-white"
               }`}
             >
@@ -204,9 +185,20 @@ const PostDetail = () => {
             </button>
           </div>
         </div>
+
+        {/* Back link */}
+        <div className="mt-12">
+          <Link
+            to="/"
+            className="text-(--main) text-xs uppercase tracking-widest font-black hover:text-white transition-colors"
+          >
+            ← Back to Home
+          </Link>
+        </div>
+
       </div>
     </div>
   );
 };
 
-export default PostDetail;
+export default HeroPost;
