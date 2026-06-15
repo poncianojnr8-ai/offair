@@ -75,7 +75,7 @@ const Team = () => {
             {/* LEFT: TEAM (2/3) */}
             <div className="lg:col-span-2 bg-[var(--bg-secondary)] p-10 flex flex-col gap-10">
               <div>
-                <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2">
+                <h3 className="text-sm font-bold uppercase tracking-widest bg-[var(--main)] inline-block px-4 py-2">
                   Meet The Team
                 </h3>
 
@@ -120,7 +120,7 @@ const Team = () => {
             {/* RIGHT: TRENDING (1/3) */}
             <div className="hidden lg:flex lg:col-span-1 flex-col gap-10 bg-[var(--bg-secondary)] p-10 h-fit">
               <div className="flex flex-col gap-5">
-                <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit">
+                <h3 className="text-sm font-bold uppercase tracking-widest bg-[var(--main)] inline-block px-4 py-2 w-fit">
                   Trending
                 </h3>
 

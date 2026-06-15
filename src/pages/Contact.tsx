@@ -36,7 +36,7 @@ const Contact = () => {
                 {/* LEFT: MAIN FORM (2/3) */}
                 <div className="lg:col-span-2 flex flex-col gap-8">
                   <div>
-                    <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2">
+                    <h3 className="text-sm font-bold uppercase tracking-widest bg-[var(--main)] inline-block px-4 py-2">
                       Contact Us
                     </h3>
 
@@ -101,7 +101,7 @@ const Contact = () => {
                 {/* RIGHT: OPTIONAL LINKS (1/3) */}
                 <div className="lg:col-span-1 flex flex-col gap-6 pt-8">
                   <div>
-                    <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit mb-6">
+                    <h3 className="text-sm font-bold uppercase tracking-widest bg-[var(--main)] inline-block px-4 py-2 w-fit mb-6">
                       Your Links
                     </h3>
 

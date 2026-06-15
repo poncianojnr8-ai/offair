@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import logo from "../../../assets/images/logo.png";
+import logoMain from "../../../assets/images/logo-main.png";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -47,7 +48,7 @@ const Navbar = () => {
             <div className="px-4 shrink-0">
               <Link to="/">
                 <img
-                  src={logo}
+                  src={logoMain}
                   alt="Logo"
                   className={`transition-all duration-500 object-contain ${
                     isScrolled ? "h-16" : "h-24"
@@ -69,16 +70,7 @@ const Navbar = () => {
 
           {/* Mobile navbar */}
           <div className="lg:hidden flex items-center justify-between w-full">
-            {/* Menu button / Close button */}
-            <button
-              onClick={() => setOpen(!open)}
-              className="text-white p-1 z-50"
-              aria-label={open ? "Close menu" : "Open menu"}
-            >
-              {open ? <X size={28} /> : <Menu size={28} />}
-            </button>
-
-            {/* Logo on right */}
+            {/* Logo on left */}
             <Link to="/" className="shrink-0">
               <img
                 src={logo}
@@ -88,44 +80,102 @@ const Navbar = () => {
                 }`}
               />
             </Link>
+
+            {/* Menu button / Close button */}
+            <button
+              onClick={() => setOpen(!open)}
+              className="text-white p-1 z-50"
+              aria-label={open ? "Close menu" : "Open menu"}
+            >
+              {open ? <X size={28} /> : <Menu size={28} />}
+            </button>
           </div>
         </div>
       </nav>
 
-      {/* Mobile menu */}
+      {/* Mobile menu overlay */}
       <div
-        className={`fixed inset-0 z-40 transition-transform duration-500 ease-in-out
+        className={`lg:hidden fixed inset-0 z-40 flex flex-col transition-transform duration-500 ease-in-out
         ${open ? "translate-y-0" : "-translate-y-full"}`}
+        style={{ backgroundColor: "var(--bg-primary)" }}
       >
+        {/* Top bar mirrors the navbar */}
         <div
-          className="absolute inset-0"
+          className="flex items-center justify-between shrink-0"
           style={{
-            backgroundImage: `
-              repeating-linear-gradient(
-                90deg,
-                rgba(255,255,255,0.04),
-                rgba(255,255,255,0.04) 1px,
-                transparent 1px,
-                transparent 80px
-              )
-            `,
-            backgroundColor: "var(--bg-primary)",
+            padding: "5px var(--section-px)",
+            height: "auto",
           }}
-        />
-
-        <div className="relative z-10 h-full flex flex-col items-center justify-center gap-6 sm:gap-10 text-xl sm:text-2xl uppercase tracking-widest">
+        >
           <Link to="/" onClick={() => setOpen(false)}>
-            Home
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-16 object-contain"
+            />
           </Link>
-          <Link to="/about" onClick={() => setOpen(false)}>
-            About
-          </Link>
-          <Link to="/videos" onClick={() => setOpen(false)}>
-            Videos
-          </Link>
-          <Link to="/contact" onClick={() => setOpen(false)}>
-            Contact
-          </Link>
+
+          <button
+            onClick={() => setOpen(false)}
+            aria-label="Close menu"
+            className="flex items-center justify-center rounded-full border border-white/30 text-white"
+            style={{ width: 44, height: 44 }}
+          >
+            <span className="text-2xl leading-none select-none" style={{ marginTop: -2 }}>−</span>
+          </button>
+        </div>
+
+        {/* Nav links */}
+        <nav className="flex-1 flex flex-col justify-center" style={{ paddingLeft: "var(--section-px)", paddingRight: "var(--section-px)" }}>
+          {[
+            { label: "Home", to: "/" },
+            { label: "About", to: "/about" },
+            { label: "Videos", to: "/videos" },
+            { label: "Contact", to: "/contact" },
+          ].map(({ label, to }) => (
+            <Link
+              key={to}
+              to={to}
+              onClick={() => setOpen(false)}
+              className="no-underline leading-tight"
+              style={{
+                fontSize: "clamp(2.5rem, 12vw, 4rem)",
+                fontWeight: 700,
+                color: "var(--text-primary)",
+                marginBottom: "0.15em",
+              }}
+            >
+              {label}
+            </Link>
+          ))}
+        </nav>
+
+        {/* Bottom contact info */}
+        <div
+          className="shrink-0 pb-6"
+          style={{ paddingLeft: "var(--section-px)", paddingRight: "var(--section-px)" }}
+        >
+          <p className="text-xs uppercase tracking-widest mb-1" style={{ color: "var(--text-muted)" }}>
+            Get in touch
+          </p>
+          <a
+            href="mailto:hello@offair.com"
+            className="text-sm font-bold uppercase tracking-widest"
+            style={{ color: "var(--text-primary)", textDecoration: "underline", textUnderlineOffset: "4px" }}
+          >
+            Email Us
+          </a>
+
+          <hr className="mt-6 mb-4" style={{ borderColor: "var(--border-color)" }} />
+
+          <div className="flex items-center justify-between">
+            <span className="text-[0.65rem] uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+              ©{new Date().getFullYear()} OffAir
+            </span>
+            <span className="text-[0.65rem] uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>
+              By Cymrai
+            </span>
+          </div>
         </div>
       </div>
     </>

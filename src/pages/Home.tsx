@@ -228,7 +228,7 @@ const Home = () => {
     <div className="w-full">
 
       {/* ── Hero Slider ──────────────────────────────────────────────────── */}
-      <section className="relative h-[80vh] sm:h-screen w-full overflow-hidden flex items-center justify-center p-0">
+      <section className="relative h-[70vh] w-full overflow-hidden flex items-center justify-center p-0">
         <div className="absolute inset-0 z-0">
           <img
             src={hero.image}
@@ -279,7 +279,7 @@ const Home = () => {
 
             {/* Latest Articles */}
             <div className="lg:col-span-2 flex flex-col gap-14 bg-[var(--bg-secondary)] p-6 sm:p-8 lg:p-10">
-              <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit">
+              <h3 className="text-sm md:text-md font-bold uppercase tracking-widest bg-[var(--main)] inline-block px-4 py-2 w-fit">
                 Latest Articles
               </h3>
 
@@ -302,13 +302,13 @@ const Home = () => {
             </div>
 
             {/* Sidebar */}
-            <div className="hidden lg:block lg:col-span-1">
-              <div className="sticky top-24 self-start">
+            <div className="lg:col-span-1">
+              <div className="lg:sticky lg:top-24 lg:self-start">
                 <div className="flex flex-col gap-8">
                   {/* Trending */}
                   <div className="flex flex-col gap-10 bg-[var(--bg-secondary)] p-6 sm:p-8 lg:p-10">
                     <div className="flex flex-col gap-5">
-                      <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit">
+                      <h3 className="text-sm md:text-md font-bold uppercase tracking-widest bg-[var(--main)] inline-block px-4 py-2 w-fit">
                         Trending
                       </h3>
 
@@ -363,7 +363,7 @@ const Home = () => {
 
                   {/* PJ Picks */}
                   <div className="flex flex-col gap-6 bg-[var(--bg-secondary)] p-6 sm:p-8 lg:p-10">
-                    <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit">
+                    <h3 className="text-sm md:text-md font-bold uppercase tracking-widest bg-[var(--main)] inline-block px-4 py-2 w-fit">
                       PJ's Picks
                     </h3>
 

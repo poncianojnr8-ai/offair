@@ -114,7 +114,7 @@ const About = () => {
 
             <div className="hidden lg:flex lg:col-span-1 flex-col gap-10 bg-[var(--bg-secondary)] p-5 sm:p-8 lg:p-10 h-fit">
               <div className="flex flex-col gap-5">
-                <h3 className="text-sm md:text-md font-[var(--style-font)] uppercase tracking-tight bg-[var(--main)] inline-block px-4 py-2 w-fit">
+                <h3 className="text-sm font-bold uppercase tracking-widest bg-[var(--main)] inline-block px-4 py-2 w-fit">
                   Trending
                 </h3>
 
