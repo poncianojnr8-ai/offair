@@ -44,7 +44,6 @@ const CreateEditVideo = () => {
   const [title, setTitle] = useState("");
   const [artist, setArtist] = useState("");
   const [category, setCategory] = useState("");
-  const [duration, setDuration] = useState("");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [embedId, setEmbedId] = useState("");
   const [isNew, setIsNew] = useState(false);
@@ -70,7 +69,6 @@ const CreateEditVideo = () => {
           setTitle(data.title || "");
           setArtist(data.artist || "");
           setCategory(data.category || "");
-          setDuration(data.duration || "");
           setEmbedId(data.embedId || "");
           setYoutubeUrl(
             data.embedId
@@ -104,7 +102,6 @@ const CreateEditVideo = () => {
         title: title.trim(),
         artist: artist.trim(),
         category,
-        duration: duration.trim(),
         embedId,
         isNew,
         isFeatured,
@@ -177,7 +174,7 @@ const CreateEditVideo = () => {
                   <img
                     src={`https://img.youtube.com/vi/${embedId}/mqdefault.jpg`}
                     alt="Thumbnail preview"
-                    className="w-24 h-14 object-cover rounded grayscale"
+                    className="w-24 h-14 object-cover rounded"
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-[10px] uppercase tracking-widest text-white/30 mb-1">
@@ -259,23 +256,6 @@ const CreateEditVideo = () => {
                   </option>
                 ))}
               </select>
-            </div>
-
-            {/* Duration */}
-            <div className="space-y-2">
-              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
-                Duration
-              </label>
-              <input
-                required
-                value={duration}
-                onChange={(e) => setDuration(e.target.value)}
-                placeholder="e.g. 5:11"
-                className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white outline-none focus:border-[var(--main)] transition-all font-mono"
-              />
-              <p className="text-[10px] text-white/20 tracking-wide">
-                Enter manually — format: M:SS or H:MM:SS
-              </p>
             </div>
 
             {/* Flags */}

@@ -1,17 +1,20 @@
+import { Link } from "react-router-dom";
+
 type TrendingProps = {
+  id?: string;
   title: string;
   rank: number;
   image: string;
 };
 
-const Trending = ({ title, rank, image }: TrendingProps) => {
-  return (
-    <article className="w-full">
+const Trending = ({ id, title, rank, image }: TrendingProps) => {
+  const card = (
+    <article className="w-full group">
       <div className="relative w-full overflow-hidden rounded-lg">
         <img
           src={image}
           alt={title}
-          className="w-full h-45 sm:h-55 object-cover"
+          className="w-full h-45 sm:h-55 object-cover transition-transform duration-500 group-hover:scale-105"
         />
 
         {/* Dark gradient bottom */}
@@ -32,6 +35,19 @@ const Trending = ({ title, rank, image }: TrendingProps) => {
       </div>
     </article>
   );
+
+  if (id) {
+    return (
+      <Link
+        to={`/trending/${id}`}
+        className="block no-underline hover:no-underline"
+      >
+        {card}
+      </Link>
+    );
+  }
+
+  return card;
 };
 
 export default Trending;

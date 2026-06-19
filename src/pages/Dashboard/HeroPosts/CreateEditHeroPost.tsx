@@ -81,7 +81,6 @@ const CreateEditHeroPost = () => {
   const [existingImageUrl, setExistingImageUrl] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string>("");
   const [videoUrl, setVideoUrl] = useState("");
-  const [existingVideoUrl, setExistingVideoUrl] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingPost, setLoadingPost] = useState(isEditMode);
   const [uploadingImage, setUploadingImage] = useState(false);
@@ -155,7 +154,6 @@ const CreateEditHeroPost = () => {
           setExistingImageUrl(data.image || "");
           setImagePreview(data.image || "");
           setVideoUrl(data.videoUrl || "");
-          setExistingVideoUrl(data.videoUrl || "");
           if (data.body) {
             editor.commands.setContent(data.body);
           }
@@ -240,7 +238,10 @@ const CreateEditHeroPost = () => {
     setIsSubmitting(true);
     try {
       let imageUrl = existingImageUrl;
-      let finalVideoUrl = existingVideoUrl || (videoUrl.trim() || undefined);
+      // Video is optional. Store the URL when present, otherwise null so it
+      // is properly cleared on edit and never breaks the write.
+      const trimmedVideo = videoUrl.trim();
+      const finalVideoUrl = trimmedVideo ? trimmedVideo : null;
 
       // Upload new cover image if selected
       if (imageFile) {
@@ -495,7 +496,7 @@ const CreateEditHeroPost = () => {
                 <img
                   src={imagePreview}
                   alt="Preview"
-                  className="w-full h-40 object-cover grayscale mb-2"
+                  className="w-full h-40 object-cover mb-2"
                 />
               )}
 

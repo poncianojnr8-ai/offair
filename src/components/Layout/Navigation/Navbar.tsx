@@ -41,8 +41,8 @@ const Navbar = () => {
               </Link>
             </div>
             <div className="px-4">
-              <Link className="text-sm uppercase tracking-widest font-bold no-underline" to="/about">
-                About
+              <Link className="text-sm uppercase tracking-widest font-bold no-underline" to="/interviews">
+                Interviews
               </Link>
             </div>
             <div className="px-4 shrink-0">
@@ -129,7 +129,7 @@ const Navbar = () => {
         <nav className="flex-1 flex flex-col justify-center" style={{ paddingLeft: "var(--section-px)", paddingRight: "var(--section-px)" }}>
           {[
             { label: "Home", to: "/" },
-            { label: "About", to: "/about" },
+            { label: "Interviews", to: "/interviews" },
             { label: "Videos", to: "/videos" },
             { label: "Contact", to: "/contact" },
           ].map(({ label, to }) => (

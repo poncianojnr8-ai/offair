@@ -151,7 +151,7 @@ const AdminPicks = () => {
                   <img
                     src={imagePreview}
                     alt="Preview"
-                    className="w-full h-32 object-cover grayscale mb-2 rounded"
+                    className="w-full h-32 object-cover mb-2 rounded"
                   />
                 )}
                 <label className="flex flex-col items-center justify-center border-2 border-dashed border-white/10 p-5 hover:border-[var(--main)] cursor-pointer transition-all rounded">
@@ -229,7 +229,7 @@ const AdminPicks = () => {
                             <img
                               src={pick.image}
                               alt=""
-                              className="w-10 h-10 object-cover rounded grayscale"
+                              className="w-10 h-10 object-cover rounded"
                             />
                             <span className="text-white font-medium text-sm line-clamp-1">
                               {pick.title}

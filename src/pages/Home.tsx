@@ -49,39 +49,32 @@ type PickData = {
   link?: string | null;
 };
 
+type HeroSlide = {
+  id: string;
+  title: string;
+  subtitle: string;
+  link: string;
+  image: string;
+};
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const TRENDS_PER_PAGE = 3;
 
-// Hero slides are configurable here.
-// To change/update hero images, replace `image` values with your own asset imports or URL.
-// Example: image: require("../assets/images/hero-1.jpg") or import hero1 from "../assets/images/hero-1.jpg".
-// Link route supports story/post links via `link` (hero click target).
-const slides = [
-  {
-    title: "WELCOME TO OFF AIR",
-    subtitle: "THE PELICANS",
-    link: "/posts/welcome-to-off-air",
-    image: bgImage,
-  },
-  {
-    title: "UNFILTERED NOISE",
-    subtitle: "LONDON UNDERGROUND",
-    link: "/posts/unfiltered-noise",
-    image: bgImage,
-  },
-  {
-    title: "BLOOD & VINYL",
-    subtitle: "LATE NIGHT SESSIONS",
-    link: "/posts/blood-vinyl",
-    image: bgImage,
-  },
-];
+// Fallback shown only when there are no hero posts in the database yet.
+const fallbackSlide: HeroSlide = {
+  id: "",
+  title: "OFF AIR",
+  subtitle: "ADD A HERO POST TO GET STARTED",
+  link: "",
+  image: bgImage,
+};
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const Home = () => {
-  // Hero slider
+  // Hero slider — driven entirely by the `heroPosts` collection
+  const [slides, setSlides] = useState<HeroSlide[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Posts
@@ -108,6 +101,33 @@ const Home = () => {
   // ── Fetches ───────────────────────────────────────────────────────────────
 
   useEffect(() => {
+    const fetchHeroPosts = async () => {
+      try {
+        const q = query(
+          collection(db, "heroPosts"),
+          orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        const data: HeroSlide[] = snapshot.docs.map((doc) => {
+          const d = doc.data() as {
+            title?: string;
+            category?: string;
+            image?: string;
+          };
+          return {
+            id: doc.id,
+            title: (d.title || "").toUpperCase(),
+            subtitle: (d.category || "Featured").toUpperCase(),
+            link: `/hero/${doc.id}`,
+            image: d.image || bgImage,
+          };
+        });
+        setSlides(data);
+      } catch (error) {
+        console.error("Error fetching hero posts:", error);
+      }
+    };
+
     const fetchPosts = async () => {
       try {
         const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
@@ -154,6 +174,7 @@ const Home = () => {
       }
     };
 
+    fetchHeroPosts();
     fetchPosts();
     fetchTrends();
     fetchPicks();
@@ -162,11 +183,12 @@ const Home = () => {
   // ── Auto-rotate hero slider ───────────────────────────────────────────────
 
   useEffect(() => {
+    if (slides.length <= 1) return;
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev === slides.length - 1 ? 0 : prev + 1));
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [slides.length]);
 
   // ── Auto-rotate PJ's Pick every 10s ─────────────────────────────────────
 
@@ -222,7 +244,7 @@ const Home = () => {
 
   // ─────────────────────────────────────────────────────────────────────────
 
-  const hero = slides[currentSlide];
+  const hero = slides[currentSlide] ?? fallbackSlide;
 
   return (
     <div className="w-full">
@@ -233,7 +255,7 @@ const Home = () => {
           <img
             src={hero.image}
             alt="Background"
-            className="w-full h-full object-cover grayscale opacity-50"
+            className="w-full h-full object-cover opacity-50"
           />
           <div className="absolute inset-0 bg-linear-to-b from-(--bg-primary) via-transparent to-(--bg-primary)" />
         </div>

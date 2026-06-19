@@ -4,16 +4,10 @@ import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 import { Link2, Check } from "lucide-react";
 
-// Inline SVGs for social share icons
+// Inline social share icons
 const XShareIcon = () => (
   <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor">
     <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
-
-const FacebookIcon = () => (
-  <svg width={16} height={16} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
   </svg>
 );
 
@@ -23,18 +17,19 @@ const WhatsAppIcon = () => (
   </svg>
 );
 
-interface PostData {
+interface TrendingData {
   id: string;
   title: string;
-  category: string;
-  date: string;
+  rank?: number;
+  category?: string;
+  date?: string;
   image: string;
   body?: string;
 }
 
-const PostDetail = () => {
+const TrendingDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [post, setPost] = useState<PostData | null>(null);
+  const [item, setItem] = useState<TrendingData | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -47,7 +42,6 @@ const PostDetail = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Fallback for older browsers
       const el = document.createElement("input");
       el.value = pageUrl;
       document.body.appendChild(el);
@@ -62,25 +56,24 @@ const PostDetail = () => {
   useEffect(() => {
     if (!id) return;
 
-    const fetchPost = async () => {
+    const fetchItem = async () => {
       try {
-        const docRef = doc(db, "posts", id);
+        const docRef = doc(db, "trending", id);
         const docSnap = await getDoc(docRef);
-
         if (docSnap.exists()) {
-          setPost({ id: docSnap.id, ...docSnap.data() } as PostData);
+          setItem({ id: docSnap.id, ...docSnap.data() } as TrendingData);
         } else {
           setNotFound(true);
         }
       } catch (error) {
-        console.error("Error fetching post:", error);
+        console.error("Error fetching trending item:", error);
         setNotFound(true);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPost();
+    fetchItem();
   }, [id]);
 
   if (loading) {
@@ -93,11 +86,11 @@ const PostDetail = () => {
     );
   }
 
-  if (notFound || !post) {
+  if (notFound || !item) {
     return (
       <div className="min-h-screen bg-[var(--bg-primary)] flex flex-col items-center justify-center gap-6">
         <p className="text-white/40 uppercase tracking-widest text-sm">
-          Article not found.
+          Story not found.
         </p>
         <Link
           to="/"
@@ -114,52 +107,58 @@ const PostDetail = () => {
       {/* Hero Image */}
       <div className="relative w-full h-[40vh] sm:h-[55vh] md:h-[75vh] overflow-hidden">
         <img
-          src={post.image}
-          alt={post.title}
+          src={item.image}
+          alt={item.title}
           className="w-full h-full object-cover object-top"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-black/40 to-transparent" />
+        {typeof item.rank === "number" && (
+          <span className="absolute top-6 right-6 bg-black/70 text-[var(--main)] font-black tracking-widest uppercase text-sm px-3 py-1">
+            #{item.rank} Trending
+          </span>
+        )}
       </div>
 
-      {/* Article Content */}
+      {/* Content */}
       <div className="w-full px-[var(--section-px)] py-8 sm:py-12 md:py-16 max-w-4xl mx-auto">
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-6 mb-5 sm:mb-6 text-xs uppercase tracking-[0.25em]">
-          <span className="bg-[var(--main)] text-white px-3 py-1 font-black">
-            {post.category}
-          </span>
-          <span className="text-white/40">{post.date}</span>
+          {item.category && (
+            <span className="bg-[var(--main)] text-white px-3 py-1 font-black">
+              {item.category}
+            </span>
+          )}
+          {item.date && <span className="text-white/40">{item.date}</span>}
         </div>
 
         {/* Title */}
         <h1 className="font-[var(--style-font)] text-white tracking-tighter leading-[0.95] text-[1.6rem] sm:text-[2.5rem] md:text-[4rem] mb-8 sm:mb-12">
-          {post.title}
+          {item.title}
         </h1>
 
         {/* Divider */}
         <div className="w-16 h-[2px] bg-[var(--main)] mb-12" />
 
         {/* Body */}
-        {post.body ? (
+        {item.body ? (
           <div
             className="prose-content text-white/75 leading-relaxed text-base md:text-lg"
-            dangerouslySetInnerHTML={{ __html: post.body }}
+            dangerouslySetInnerHTML={{ __html: item.body }}
           />
         ) : (
           <p className="text-white/30 italic tracking-widest text-sm uppercase">
-            No content available for this article.
+            No content available for this story.
           </p>
         )}
 
         {/* Share */}
         <div className="mt-16 pt-8 border-t border-white/10">
           <p className="text-[10px] uppercase tracking-[0.3em] text-white/30 font-bold mb-5">
-            Share this article
+            Share this story
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            {/* Twitter / X */}
             <a
-              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(post.title)}`}
+              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(pageUrl)}&text=${encodeURIComponent(item.title)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/60 hover:text-white transition-all text-xs uppercase tracking-widest font-bold"
@@ -167,21 +166,8 @@ const PostDetail = () => {
               <XShareIcon />
               X
             </a>
-
-            {/* Facebook */}
             <a
-              href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(pageUrl)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/60 hover:text-white transition-all text-xs uppercase tracking-widest font-bold"
-            >
-              <FacebookIcon />
-              Facebook
-            </a>
-
-            {/* WhatsApp */}
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(post.title + " " + pageUrl)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(item.title + " " + pageUrl)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 text-white/60 hover:text-white transition-all text-xs uppercase tracking-widest font-bold"
@@ -189,8 +175,6 @@ const PostDetail = () => {
               <WhatsAppIcon />
               WhatsApp
             </a>
-
-            {/* Copy Link */}
             <button
               onClick={handleCopy}
               className={`flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 border transition-all text-xs uppercase tracking-widest font-bold ${
@@ -204,9 +188,19 @@ const PostDetail = () => {
             </button>
           </div>
         </div>
+
+        {/* Back link */}
+        <div className="mt-12">
+          <Link
+            to="/"
+            className="text-[var(--main)] text-xs uppercase tracking-widest font-black hover:text-white transition-colors"
+          >
+            ← Back to Home
+          </Link>
+        </div>
       </div>
     </div>
   );
 };
 
-export default PostDetail;
+export default TrendingDetail;

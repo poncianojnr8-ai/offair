@@ -138,7 +138,7 @@ const AdminPosts = () => {
             <img
               src={post.image}
               alt=""
-              className="w-24 h-24 object-cover rounded grayscale group-hover:grayscale-0 transition-all"
+              className="w-24 h-24 object-cover rounded transition-all"
             />
             <div className="flex-1 flex flex-col justify-center">
               <h3 className="font-bold text-lg leading-tight">{post.title}</h3>

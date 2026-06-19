@@ -118,7 +118,7 @@ const HeroPost = () => {
         <img
           src={post.image}
           alt={post.title}
-          className="w-full h-full object-cover object-top grayscale"
+          className="w-full h-full object-cover object-top"
         />
         <div className="absolute inset-0 bg-linear-to-t from-(--bg-primary) via-black/40 to-transparent" />
       </div>
@@ -143,10 +143,16 @@ const HeroPost = () => {
         <div className="w-16 h-0.5 bg-(--main) mb-10 sm:mb-12" />
 
         {/* Body */}
-        <div
-          className="prose-content text-white/75 leading-relaxed text-base md:text-lg"
-          dangerouslySetInnerHTML={{ __html: post.body }}
-        />
+        {post.body ? (
+          <div
+            className="prose-content text-white/75 leading-relaxed text-base md:text-lg"
+            dangerouslySetInnerHTML={{ __html: post.body }}
+          />
+        ) : (
+          <p className="text-white/30 italic tracking-widest text-sm uppercase">
+            No content available for this article.
+          </p>
+        )}
 
         {/* Share */}
         <div className="mt-14 sm:mt-16 pt-8 border-t border-white/10">

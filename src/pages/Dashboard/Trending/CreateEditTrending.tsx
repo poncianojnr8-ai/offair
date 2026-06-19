@@ -57,12 +57,13 @@ interface Category {
   name: string;
 }
 
-const CreateEditPost = () => {
+const CreateEditTrending = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEditMode = Boolean(id);
 
   const [title, setTitle] = useState("");
+  const [rank, setRank] = useState<number | "">("");
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -71,15 +72,13 @@ const CreateEditPost = () => {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [videoUrl, setVideoUrl] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [loadingPost, setLoadingPost] = useState(isEditMode);
+  const [loadingItem, setLoadingItem] = useState(isEditMode);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image.configure({
-        inline: true,
-        allowBase64: true,
-      }),
+      Image.configure({ inline: false, allowBase64: false }),
     ],
     content: "",
     editorProps: {
@@ -89,7 +88,7 @@ const CreateEditPost = () => {
     },
   });
 
-  // Fetch categories from Firestore
+  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -113,43 +112,64 @@ const CreateEditPost = () => {
     fetchCategories();
   }, []);
 
-  // Load existing post data in edit mode
+  // Load existing item in edit mode
   useEffect(() => {
     if (!isEditMode || !id || !editor) return;
 
-    const fetchPost = async () => {
+    const fetchItem = async () => {
       try {
-        const docRef = doc(db, "posts", id);
+        const docRef = doc(db, "trending", id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
           const data = docSnap.data();
           setTitle(data.title || "");
+          setRank(typeof data.rank === "number" ? data.rank : "");
           setCategory(data.category || "");
           setExistingImageUrl(data.image || "");
           setImagePreview(data.image || "");
+          setVideoUrl(data.videoUrl || "");
           if (data.body) {
             editor.commands.setContent(data.body);
           }
         }
       } catch (error) {
-        console.error("Error loading post:", error);
+        console.error("Error loading trending item:", error);
       } finally {
-        setLoadingPost(false);
+        setLoadingItem(false);
       }
     };
 
-    fetchPost();
+    fetchItem();
   }, [id, isEditMode, editor]);
 
   const handleImageChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0] ?? null;
       setImageFile(file);
-      if (file) {
-        setImagePreview(URL.createObjectURL(file));
-      }
+      if (file) setImagePreview(URL.createObjectURL(file));
     },
     []
+  );
+
+  const handleInlineImageUpload = useCallback(
+    async (file: File) => {
+      setUploadingImage(true);
+      try {
+        const storageRef = ref(
+          storage,
+          `trending/content/${Date.now()}_${file.name}`
+        );
+        await uploadBytes(storageRef, file);
+        const url = await getDownloadURL(storageRef);
+        editor?.chain().focus().setImage({ src: url }).run();
+      } catch (error) {
+        console.error("Error uploading inline image:", error);
+        alert("Failed to upload image. Please try again.");
+      } finally {
+        setUploadingImage(false);
+      }
+    },
+    [editor]
   );
 
   const handleEmbedVideo = useCallback(() => {
@@ -180,51 +200,56 @@ const CreateEditPost = () => {
       alert("Please select a cover image.");
       return;
     }
+    if (rank === "") {
+      alert("Please set a rank.");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       let imageUrl = existingImageUrl;
-
-      // Upload new image if selected
       if (imageFile) {
         const storageRef = ref(
           storage,
-          `posts/${Date.now()}_${imageFile.name}`
+          `trending/${Date.now()}_${imageFile.name}`
         );
         await uploadBytes(storageRef, imageFile);
         imageUrl = await getDownloadURL(storageRef);
       }
 
+      const trimmedVideo = videoUrl.trim();
       const body = editor?.getHTML() ?? "";
 
+      const itemData = {
+        title: title.trim(),
+        rank: Number(rank),
+        category,
+        image: imageUrl,
+        body,
+        videoUrl: trimmedVideo ? trimmedVideo : null,
+        hasVideo: !!trimmedVideo,
+        date: new Date().toLocaleDateString("en-GB"),
+      };
+
       if (isEditMode && id) {
-        await updateDoc(doc(db, "posts", id), {
-          title,
-          category,
-          image: imageUrl,
-          body,
-        });
+        await updateDoc(doc(db, "trending", id), itemData);
       } else {
-        await addDoc(collection(db, "posts"), {
-          title,
-          category,
-          image: imageUrl,
-          body,
-          date: new Date().toLocaleDateString("en-GB"),
+        await addDoc(collection(db, "trending"), {
+          ...itemData,
           createdAt: serverTimestamp(),
         });
       }
 
-      navigate("/admin/posts");
+      navigate("/admin/trending");
     } catch (error) {
-      console.error("Error saving post:", error);
-      alert("Failed to save article. Please try again.");
+      console.error("Error saving trending item:", error);
+      alert("Failed to save trending item. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (loadingPost) {
+  if (loadingItem) {
     return (
       <div className="flex items-center justify-center h-64">
         <p className="text-white/20 animate-pulse uppercase tracking-widest text-xs">
@@ -237,19 +262,17 @@ const CreateEditPost = () => {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={() => navigate("/admin/posts")}
-            className="text-white/40 hover:text-white transition-colors"
-          >
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="text-3xl font-[var(--style-font)] text-white tracking-tighter">
-            {isEditMode ? "EDIT ARTICLE" : "NEW ARTICLE"}
-          </h1>
-        </div>
+      <div className="flex items-center gap-4">
+        <button
+          type="button"
+          onClick={() => navigate("/admin/trending")}
+          className="text-white/40 hover:text-white transition-colors"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <h1 className="text-3xl font-[var(--style-font)] text-white tracking-tighter">
+          {isEditMode ? "EDIT TRENDING" : "NEW TRENDING"}
+        </h1>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
@@ -265,7 +288,7 @@ const CreateEditPost = () => {
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Article title..."
+                placeholder="Trending story title..."
                 className="w-full bg-[var(--bg-secondary)] border border-white/10 p-4 text-white text-lg outline-none focus:border-[var(--main)] transition-all"
               />
             </div>
@@ -279,17 +302,13 @@ const CreateEditPost = () => {
                 {/* Toolbar */}
                 <div className="flex flex-wrap items-center gap-1 p-2 border-b border-white/10">
                   <ToolbarButton
-                    onClick={() =>
-                      editor?.chain().focus().toggleBold().run()
-                    }
+                    onClick={() => editor?.chain().focus().toggleBold().run()}
                     active={editor?.isActive("bold")}
                   >
                     <Bold size={15} />
                   </ToolbarButton>
                   <ToolbarButton
-                    onClick={() =>
-                      editor?.chain().focus().toggleItalic().run()
-                    }
+                    onClick={() => editor?.chain().focus().toggleItalic().run()}
                     active={editor?.isActive("italic")}
                   >
                     <Italic size={15} />
@@ -297,11 +316,7 @@ const CreateEditPost = () => {
                   <div className="w-px h-5 bg-white/10 mx-1" />
                   <ToolbarButton
                     onClick={() =>
-                      editor
-                        ?.chain()
-                        .focus()
-                        .toggleHeading({ level: 2 })
-                        .run()
+                      editor?.chain().focus().toggleHeading({ level: 2 }).run()
                     }
                     active={editor?.isActive("heading", { level: 2 })}
                   >
@@ -309,11 +324,7 @@ const CreateEditPost = () => {
                   </ToolbarButton>
                   <ToolbarButton
                     onClick={() =>
-                      editor
-                        ?.chain()
-                        .focus()
-                        .toggleHeading({ level: 3 })
-                        .run()
+                      editor?.chain().focus().toggleHeading({ level: 3 }).run()
                     }
                     active={editor?.isActive("heading", { level: 3 })}
                   >
@@ -345,39 +356,6 @@ const CreateEditPost = () => {
                   >
                     <Quote size={15} />
                   </ToolbarButton>
-                  <div className="w-px h-5 bg-white/10 mx-1" />
-                  <ToolbarButton
-                    onClick={() => {
-                      const fileInput = document.querySelector(
-                        '#image-upload-input'
-                      ) as HTMLInputElement;
-                      if (fileInput) fileInput.click();
-                    }}
-                    active={false}
-                  >
-                    <ImageIcon size={15} />
-                  </ToolbarButton>
-                  <input
-                    id="image-upload-input"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file && editor) {
-                        try {
-                          const storageRef = ref(storage, `posts/content/${Date.now()}_${file.name}`);
-                          await uploadBytes(storageRef, file);
-                          const url = await getDownloadURL(storageRef);
-                          editor.chain().focus().setImage({ src: url }).run();
-                        } catch (error) {
-                          console.error("Error uploading image:", error);
-                          alert("Failed to upload image.");
-                        }
-                      }
-                      e.target.value = "";
-                    }}
-                  />
                 </div>
 
                 {/* Editor Area */}
@@ -389,29 +367,17 @@ const CreateEditPost = () => {
                 <div className="flex items-center gap-4 p-3 border-t border-white/10">
                   <label className="flex items-center gap-2 px-3 py-2 bg-black/30 hover:bg-black/50 rounded transition-all cursor-pointer text-white/60 hover:text-white text-xs uppercase tracking-widest">
                     <ImageIcon size={14} />
-                    Insert Image
+                    {uploadingImage ? "Uploading..." : "Insert Image"}
                     <input
                       type="file"
                       hidden
                       accept="image/*"
-                      onChange={async (e) => {
+                      onChange={(e) => {
                         const file = e.target.files?.[0];
-                        if (file && editor) {
-                          try {
-                            const storageRef = ref(
-                              storage,
-                              `posts/content/${Date.now()}_${file.name}`
-                            );
-                            await uploadBytes(storageRef, file);
-                            const url = await getDownloadURL(storageRef);
-                            editor.chain().focus().setImage({ src: url }).run();
-                          } catch (error) {
-                            console.error("Error uploading image:", error);
-                            alert("Failed to upload image.");
-                          }
-                        }
+                        if (file) handleInlineImageUpload(file);
                         e.target.value = "";
                       }}
+                      disabled={uploadingImage}
                     />
                   </label>
 
@@ -430,6 +396,24 @@ const CreateEditPost = () => {
 
           {/* Right Column — Meta & Image */}
           <div className="space-y-6">
+            {/* Rank */}
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
+                Rank
+              </label>
+              <input
+                required
+                type="number"
+                min={1}
+                value={rank}
+                onChange={(e) =>
+                  setRank(e.target.value === "" ? "" : Number(e.target.value))
+                }
+                placeholder="1"
+                className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white outline-none focus:border-[var(--main)] transition-all"
+              />
+            </div>
+
             {/* Category */}
             <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
@@ -532,9 +516,9 @@ const CreateEditPost = () => {
               {isSubmitting ? (
                 <Loader2 className="animate-spin" size={18} />
               ) : isEditMode ? (
-                "Update Article"
+                "Update Trending"
               ) : (
-                "Broadcast Article"
+                "Publish Trending"
               )}
             </button>
           </div>
@@ -544,4 +528,4 @@ const CreateEditPost = () => {
   );
 };
 
-export default CreateEditPost;
+export default CreateEditTrending;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Play, Eye, Clock, Loader2 } from "lucide-react";
+import { Play, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { db } from "../firebase";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
@@ -11,7 +11,6 @@ type Video = {
   title: string;
   artist: string;
   category: string;
-  duration: string;
   embedId: string;
   isNew?: boolean;
   isFeatured?: boolean;
@@ -130,7 +129,7 @@ const Videos = () => {
                   <img
                     src={`https://img.youtube.com/vi/${featured.embedId}/maxresdefault.jpg`}
                     alt={featured.title}
-                    className="w-full h-full object-cover grayscale opacity-60"
+                    className="w-full h-full object-cover opacity-60"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/20 to-transparent" />
 
@@ -143,10 +142,6 @@ const Videos = () => {
                       <Play size={26} fill="white" className="text-white ml-1" />
                     </div>
                   </button>
-
-                  <span className="absolute bottom-3 right-3 bg-black/80 text-white text-[10px] font-bold px-2 py-0.5 tracking-wider">
-                    {featured.duration}
-                  </span>
                 </>
               )}
             </div>
@@ -169,13 +164,6 @@ const Videos = () => {
                 <p className="text-(--main) text-[10px] uppercase tracking-[0.3em] font-black mt-3">
                   {featured.artist}
                 </p>
-              </div>
-
-              <div className="flex items-center gap-4 text-white/25 text-[10px] uppercase tracking-widest">
-                <span className="flex items-center gap-1.5">
-                  <Clock size={11} />
-                  {featured.duration}
-                </span>
               </div>
 
               {!featuredPlaying && (
@@ -249,7 +237,7 @@ const Videos = () => {
                       <img
                         src={`https://img.youtube.com/vi/${video.embedId}/maxresdefault.jpg`}
                         alt={video.title}
-                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
                       />
                       <div className="absolute inset-0 bg-black/50 group-hover:bg-black/25 transition-all duration-300" />
 
@@ -258,10 +246,6 @@ const Videos = () => {
                           <Play size={17} fill="white" className="text-white ml-0.5" />
                         </div>
                       </div>
-
-                      <span className="absolute bottom-3 right-3 bg-black/80 text-white text-[9px] font-bold px-2 py-0.5 tracking-wider">
-                        {video.duration}
-                      </span>
 
                       {video.isNew && (
                         <span className="absolute top-3 left-3 bg-(--main) text-white text-[8px] font-black uppercase tracking-widest px-2 py-0.5">
@@ -278,12 +262,8 @@ const Videos = () => {
                     <h3 className="text-white font-bold text-sm leading-tight mt-1 group-hover:text-(--main) transition-colors duration-200">
                       {video.title}
                     </h3>
-                    <div className="flex items-center justify-between mt-3 text-white/25 text-[9px] uppercase tracking-widest">
+                    <div className="flex items-center mt-3 text-white/25 text-[9px] uppercase tracking-widest">
                       <span>{video.artist}</span>
-                      <span className="flex items-center gap-1">
-                        <Eye size={9} />
-                        {video.duration}
-                      </span>
                     </div>
                   </div>
                 </div>

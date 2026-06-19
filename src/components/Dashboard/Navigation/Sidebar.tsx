@@ -3,10 +3,10 @@ import {
   LayoutDashboard,
   FileText,
   TrendingUp,
-  Star,
   Tag,
   LogOut,
   Tv,
+  Mic,
 } from "lucide-react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../../firebase";
@@ -38,6 +38,11 @@ const Sidebar = () => {
       name: "Videos",
       path: "/admin/videos",
       icon: <Tv size={20} />,
+    },
+    {
+      name: "Interviews",
+      path: "/admin/interviews",
+      icon: <Mic size={20} />,
     },
   ];
 

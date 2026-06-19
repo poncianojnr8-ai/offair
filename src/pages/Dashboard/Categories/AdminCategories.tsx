@@ -4,13 +4,14 @@ import {
   collection,
   getDocs,
   addDoc,
+  updateDoc,
   deleteDoc,
   doc,
   query,
   orderBy,
   serverTimestamp,
 } from "firebase/firestore";
-import { Plus, Trash2, Loader2, Tag } from "lucide-react";
+import { Plus, Trash2, Loader2, Tag, Edit, X } from "lucide-react";
 
 interface Category {
   id: string;
@@ -35,6 +36,7 @@ const AdminCategories = () => {
   const [description, setDescription] = useState("");
   const [slug, setSlug] = useState("");
   const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchCategories = async () => {
     setLoading(true);
@@ -73,27 +75,51 @@ const AdminCategories = () => {
     setSlug(toSlug(value));
   };
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setName("");
+    setDescription("");
+    setSlug("");
+    setSlugManuallyEdited(false);
+    setEditingId(null);
+  };
+
+  const startEdit = (cat: Category) => {
+    setEditingId(cat.id);
+    setName(cat.name);
+    setDescription(cat.description || "");
+    setSlug(cat.slug || "");
+    setSlugManuallyEdited(true);
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
     setIsSubmitting(true);
     try {
-      await addDoc(collection(db, "categories"), {
+      const payload = {
         name: name.trim(),
         description: description.trim(),
         slug: slug || toSlug(name),
-        createdAt: serverTimestamp(),
-      });
+      };
 
-      setName("");
-      setDescription("");
-      setSlug("");
-      setSlugManuallyEdited(false);
+      if (editingId) {
+        await updateDoc(doc(db, "categories", editingId), payload);
+      } else {
+        await addDoc(collection(db, "categories"), {
+          ...payload,
+          createdAt: serverTimestamp(),
+        });
+      }
+
+      resetForm();
       fetchCategories();
     } catch (error) {
-      console.error("Error creating category:", error);
-      alert("Failed to create category.");
+      console.error("Error saving category:", error);
+      alert("Failed to save category.");
     } finally {
       setIsSubmitting(false);
     }
@@ -122,11 +148,22 @@ const AdminCategories = () => {
         {/* Add Category Form */}
         <div className="lg:col-span-1">
           <div className="bg-[var(--bg-secondary)] border border-white/5 rounded-xl p-6 space-y-5">
-            <h2 className="text-xs uppercase tracking-[0.2em] text-white/50 font-bold">
-              New Category
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs uppercase tracking-[0.2em] text-white/50 font-bold">
+                {editingId ? "Edit Category" : "New Category"}
+              </h2>
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex items-center gap-1 text-white/40 hover:text-white text-[10px] uppercase tracking-widest"
+                >
+                  <X size={12} /> Cancel
+                </button>
+              )}
+            </div>
 
-            <form onSubmit={handleCreate} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* Name */}
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
@@ -178,6 +215,10 @@ const AdminCategories = () => {
               >
                 {isSubmitting ? (
                   <Loader2 className="animate-spin" size={16} />
+                ) : editingId ? (
+                  <>
+                    <Edit size={14} /> Update Category
+                  </>
                 ) : (
                   <>
                     <Plus size={14} /> Add Category
@@ -246,13 +287,22 @@ const AdminCategories = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => handleDelete(cat.id)}
-                            className="p-2 text-white/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                            title="Delete category"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => startEdit(cat)}
+                              className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                              title="Edit category"
+                            >
+                              <Edit size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(cat.id)}
+                              className="p-2 text-white/40 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                              title="Delete category"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))

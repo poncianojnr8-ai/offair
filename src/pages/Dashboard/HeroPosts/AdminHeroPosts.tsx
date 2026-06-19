@@ -117,12 +117,12 @@ const AdminHeroPosts = () => {
                           <img
                             src={post.image}
                             alt=""
-                            className="w-10 h-10 object-cover rounded grayscale"
+                            className="w-10 h-10 object-cover rounded"
                           />
                         )}
                         <div className="flex items-center gap-2">
                           <Link
-                            to={`/posts/${post.id}`}
+                            to={`/hero/${post.id}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-white font-medium group-hover:text-[var(--main)] transition-colors line-clamp-1 flex items-center gap-2"

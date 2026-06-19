@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import { getAuth } from "firebase/auth";
 
@@ -15,7 +15,11 @@ const firebaseConfig = {
 // Initialize the "Server" Services
 const app = initializeApp(firebaseConfig);
 
-export const db = getFirestore(app);
+// ignoreUndefinedProperties lets us write optional fields (e.g. videoUrl)
+// without crashing when they are undefined.
+export const db = initializeFirestore(app, {
+  ignoreUndefinedProperties: true,
+});
 export const storage = getStorage(app);
 export const auth = getAuth(app);
 export default app;
