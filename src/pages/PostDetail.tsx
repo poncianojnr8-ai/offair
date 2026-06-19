@@ -116,7 +116,7 @@ const PostDetail = () => {
         <img
           src={post.image}
           alt={post.title}
-          className="w-full h-full object-cover grayscale"
+          className="w-full h-full object-cover object-top grayscale"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-black/40 to-transparent" />
       </div>

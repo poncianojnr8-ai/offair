@@ -118,7 +118,7 @@ const HeroPost = () => {
         <img
           src={post.image}
           alt={post.title}
-          className="w-full h-full object-cover grayscale"
+          className="w-full h-full object-cover object-top grayscale"
         />
         <div className="absolute inset-0 bg-linear-to-t from-(--bg-primary) via-black/40 to-transparent" />
       </div>

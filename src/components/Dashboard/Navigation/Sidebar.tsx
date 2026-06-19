@@ -6,6 +6,7 @@ import {
   Star,
   Tag,
   LogOut,
+  Tv,
 } from "lucide-react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../../firebase";
@@ -32,6 +33,11 @@ const Sidebar = () => {
       name: "Trending",
       path: "/admin/trending",
       icon: <TrendingUp size={20} />,
+    },
+    {
+      name: "Videos",
+      path: "/admin/videos",
+      icon: <Tv size={20} />,
     },
   ];
 
