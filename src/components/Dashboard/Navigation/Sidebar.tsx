@@ -7,6 +7,7 @@ import {
   LogOut,
   Tv,
   Mic,
+  Share2,
 } from "lucide-react";
 import { signOut } from "firebase/auth";
 import { auth } from "../../../firebase";
@@ -43,6 +44,11 @@ const Sidebar = () => {
       name: "Interviews",
       path: "/admin/interviews",
       icon: <Mic size={20} />,
+    },
+    {
+      name: "Social",
+      path: "/admin/social",
+      icon: <Share2 size={20} />,
     },
   ];
 

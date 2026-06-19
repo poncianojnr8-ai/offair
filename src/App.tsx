@@ -39,6 +39,7 @@ import AdminHeroPosts from "./pages/Dashboard/HeroPosts/AdminHeroPosts";
 import CreateEditHeroPost from "./pages/Dashboard/HeroPosts/CreateEditHeroPost";
 import AdminVideos from "./pages/Dashboard/Videos/AdminVideos";
 import CreateEditVideo from "./pages/Dashboard/Videos/CreateEditVideo";
+import AdminSocial from "./pages/Dashboard/Social/AdminSocial";
 
 function App() {
   return (
@@ -79,6 +80,7 @@ function App() {
               <Route path="hero-posts/create" element={<CreateEditHeroPost />} />
               <Route path="hero-posts/edit/:id" element={<CreateEditHeroPost />} />
               <Route path="picks" element={<AdminPicks />} />
+              <Route path="social" element={<AdminSocial />} />
               <Route path="videos" element={<AdminVideos />} />
               <Route path="videos/create" element={<CreateEditVideo />} />
               <Route path="videos/edit/:id" element={<CreateEditVideo />} />

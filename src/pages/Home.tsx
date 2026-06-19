@@ -16,15 +16,9 @@ import Picks from "../components/News/Picks";
 
 import bgImage from "../assets/images/main-bg.png";
 
-import { Search, Send } from "lucide-react";
+import { Search, Send, ArrowRight } from "lucide-react";
 
-// Inline SVGs for deprecated/removed lucide social icons
-const XIcon = ({ size = 18 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L1.254 2.25H8.08l4.259 5.63 5.905-5.63zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-  </svg>
-);
-
+// Inline SVGs for social icons not available in lucide
 const InstagramIcon = ({ size = 18 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
@@ -56,6 +50,24 @@ type HeroSlide = {
   link: string;
   image: string;
 };
+
+type SocialPost = {
+  id: string;
+  platform: "tiktok" | "instagram";
+  image: string;
+  caption?: string;
+  link: string;
+};
+
+// Social handles (used for the "follow" fallback + card labels)
+const TIKTOK_HANDLE = "poncianojnr8";
+const INSTAGRAM_HANDLE = "poncianojnr8";
+
+const TikTokGlyph = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.68v13.7a2.4 2.4 0 0 1-2.54 2.4 2.4 2.4 0 0 1-2.54-2.4 2.4 2.4 0 0 1 2.54-2.4c.09 0 .18 0 .27.02V9.49c-.17-.02-.34-.02-.5-.02A5.7 5.7 0 0 0 1 15.38a5.7 5.7 0 0 0 5.7 5.7 5.7 5.7 0 0 0 5.7-5.7V9.93a7.38 7.38 0 0 0 4.58 1.62V8.17a4.83 4.83 0 0 1-3.39-1.48z" />
+  </svg>
+);
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -91,6 +103,9 @@ const Home = () => {
   const [picks, setPicks] = useState<PickData[]>([]);
   const [loadingPicks, setLoadingPicks] = useState(true);
   const [currentPick, setCurrentPick] = useState(0);
+
+  // Social posts (TikTok / Instagram cards)
+  const [socialPosts, setSocialPosts] = useState<SocialPost[]>([]);
 
   // Newsletter
   const [email, setEmail] = useState("");
@@ -174,10 +189,29 @@ const Home = () => {
       }
     };
 
+    const fetchSocial = async () => {
+      try {
+        const q = query(
+          collection(db, "socialPosts"),
+          orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        setSocialPosts(
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          })) as SocialPost[]
+        );
+      } catch (error) {
+        console.error("Error fetching social posts:", error);
+      }
+    };
+
     fetchHeroPosts();
     fetchPosts();
     fetchTrends();
     fetchPicks();
+    fetchSocial();
   }, []);
 
   // ── Auto-rotate hero slider ───────────────────────────────────────────────
@@ -250,7 +284,7 @@ const Home = () => {
     <div className="w-full">
 
       {/* ── Hero Slider ──────────────────────────────────────────────────── */}
-      <section className="relative h-[70vh] w-full overflow-hidden flex items-center justify-center p-0">
+      <section className="relative h-[58vh] sm:h-[66vh] md:h-[70vh] w-full overflow-hidden flex items-center justify-center p-0">
         <div className="absolute inset-0 z-0">
           <img
             src={hero.image}
@@ -275,6 +309,22 @@ const Home = () => {
             <p className="font-black uppercase mt-4 tracking-[0.3em] sm:tracking-[0.5em] md:tracking-[0.8em] text-[0.65rem] sm:text-xs md:text-sm">
               {hero.subtitle}
             </p>
+          )}
+
+          {hero.link && (
+            <div className="mt-7 sm:mt-9 flex justify-center">
+              <Link
+                to={hero.link}
+                className="group relative inline-flex items-center gap-2.5 bg-(--main) text-white font-black uppercase tracking-[0.25em] text-[0.6rem] sm:text-xs px-7 sm:px-9 py-3.5 no-underline overflow-hidden transition-all duration-300 hover:text-black active:scale-95 shadow-[0_0_30px_rgba(222,44,44,0.35)]"
+              >
+                {/* Sliding fill on hover */}
+                <span className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+                <span className="relative z-10">Show more</span>
+                <span className="relative z-10 flex group-hover:translate-x-1.5 transition-transform duration-300">
+                  <ArrowRight size={15} className="animate-pulse group-hover:animate-none" />
+                </span>
+              </Link>
+            </div>
           )}
         </div>
 
@@ -389,7 +439,7 @@ const Home = () => {
                       PJ's Picks
                     </h3>
 
-                    <p className="text-white/70 text-sm">
+                    <p className="text-white text-sm font-bold">
                       Latest curated playlist from PJ — tap play to listen.
                     </p>
 
@@ -404,6 +454,15 @@ const Home = () => {
                         className="border-none block"
                       />
                     </div>
+
+                    <a
+                      href="https://open.spotify.com/playlist/5pSWKL6FXEwe1lXNAZBrtz"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white text-sm font-bold no-underline hover:text-[var(--main)] transition-colors"
+                    >
+                      Listen to what we're listening to. Follow the Off Air playlist.
+                    </a>
                   </div>
 
                 </div>
@@ -414,62 +473,119 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── Social Media Feed Placeholders ───────────────────────────────── */}
+      {/* ── Social Posts ─────────────────────────────────────────────────── */}
       <section className="w-full bg-[var(--bg-primary)] py-12 sm:py-20">
         <div className="w-full px-[var(--section-px)]">
-          <div className="text-center mb-8 sm:mb-12">
+          <div className="flex items-end justify-between gap-4 mb-8 sm:mb-12">
             <span className="text-[var(--main)] text-[10px] uppercase tracking-[0.4em] font-black">
               Social
             </span>
-            <h2 className="font-[var(--style-font)] text-white tracking-tighter text-[2rem] sm:text-[3rem] leading-tight mt-3">
-              FOLLOW THE SIGNAL
-            </h2>
+            <div className="flex items-center gap-4">
+              <a
+                href={`https://www.tiktok.com/@${TIKTOK_HANDLE}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/50 hover:text-white transition-colors"
+                aria-label="TikTok"
+              >
+                <TikTokGlyph size={18} />
+              </a>
+              <a
+                href={`https://www.instagram.com/${INSTAGRAM_HANDLE}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white/50 hover:text-white transition-colors"
+                aria-label="Instagram"
+              >
+                <InstagramIcon size={18} />
+              </a>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-8">
-
-            {/* TikTok */}
-            <div className="bg-[var(--bg-secondary)] border border-white/5 p-8 flex flex-col gap-6 min-h-[400px]">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 bg-white/5 rounded-full flex items-center justify-center text-white/60">
-                  <svg width={18} height={18} viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.68v13.7a2.4 2.4 0 0 1-2.54 2.4 2.4 2.4 0 0 1-2.54-2.4 2.4 2.4 0 0 1 2.54-2.4c.09 0 .18 0 .27.02V9.49c-.17-.02-.34-.02-.5-.02A5.7 5.7 0 0 0 1 15.38a5.7 5.7 0 0 0 5.7 5.7 5.7 5.7 0 0 0 5.7-5.7V9.93a7.38 7.38 0 0 0 4.58 1.62V8.17a4.83 4.83 0 0 1-3.39-1.48z"/>
-                  </svg>
+          {socialPosts.length > 0 ? (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+              {socialPosts.map((post) => (
+                <a
+                  key={post.id}
+                  href={post.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group bg-[var(--bg-secondary)] border border-white/5 no-underline overflow-hidden"
+                >
+                  <div className="aspect-square relative overflow-hidden">
+                    <img
+                      src={post.image}
+                      alt={post.caption || post.platform}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    />
+                    <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-all duration-300" />
+                    <span className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/70 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1">
+                      {post.platform === "tiktok" ? (
+                        <TikTokGlyph size={11} />
+                      ) : (
+                        <InstagramIcon size={11} />
+                      )}
+                      {post.platform}
+                    </span>
+                  </div>
+                  <div className="p-3 sm:p-4 flex items-center justify-between gap-2">
+                    <p className="text-white/60 text-[11px] sm:text-xs line-clamp-1">
+                      {post.caption ||
+                        `@${
+                          post.platform === "tiktok"
+                            ? TIKTOK_HANDLE
+                            : INSTAGRAM_HANDLE
+                        }`}
+                    </p>
+                    <span className="text-[var(--main)] text-[10px] uppercase tracking-widest font-black shrink-0 group-hover:text-white transition-colors">
+                      View →
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            // Fallback: follow cards when no posts have been added yet
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <a
+                href={`https://www.tiktok.com/@${TIKTOK_HANDLE}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group bg-[var(--bg-secondary)] border border-white/5 p-8 flex items-center gap-5 no-underline hover:border-[var(--main)] transition-all"
+              >
+                <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-white/70 group-hover:text-[var(--main)] transition-colors shrink-0">
+                  <TikTokGlyph size={22} />
                 </div>
                 <div>
                   <p className="text-white text-sm font-bold uppercase tracking-widest">
                     TikTok
                   </p>
-                  <p className="text-white/30 text-[10px] uppercase tracking-widest">
-                    @poncianojnr8
+                  <p className="text-white/40 text-[11px] tracking-wide mt-0.5">
+                    @{TIKTOK_HANDLE} — Follow us →
                   </p>
                 </div>
-              </div>
-
-              <div className="flex-1 flex items-center justify-center">
-                <iframe
-                  title="TikTok Profile"
-                  src="https://www.tiktok.com/embed/v2/@poncianojnr8"
-                  width="100%"
-                  height="300"
-                  frameBorder="0"
-                  allow="autoplay; encrypted-media"
-                  className="border-0"
-                />
-              </div>
+              </a>
 
               <a
-                href="https://www.tiktok.com/@poncianojnr8"
+                href={`https://www.instagram.com/${INSTAGRAM_HANDLE}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[var(--main)] text-xs uppercase tracking-widest font-black hover:text-white transition-colors"
+                className="group bg-[var(--bg-secondary)] border border-white/5 p-8 flex items-center gap-5 no-underline hover:border-[var(--main)] transition-all"
               >
-                Follow us on TikTok →
+                <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center text-white/70 group-hover:text-[var(--main)] transition-colors shrink-0">
+                  <InstagramIcon size={22} />
+                </div>
+                <div>
+                  <p className="text-white text-sm font-bold uppercase tracking-widest">
+                    Instagram
+                  </p>
+                  <p className="text-white/40 text-[11px] tracking-wide mt-0.5">
+                    @{INSTAGRAM_HANDLE} — Follow us →
+                  </p>
+                </div>
               </a>
             </div>
-
-
-          </div>
+          )}
         </div>
       </section>
 
@@ -483,7 +599,8 @@ const Home = () => {
             JOIN THE COMMUNITY
           </h2>
           <p className="text-white/40 text-sm tracking-wide mb-10">
-            Be the first to hear about new sessions, events and exclusive content.
+            Get first access to new sessions, drops and exclusive content —
+            straight to your inbox. No noise, just the good stuff.
           </p>
 
           {newsletterStatus === "success" ? (
