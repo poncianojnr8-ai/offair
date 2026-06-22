@@ -5,7 +5,7 @@ import Image from "@tiptap/extension-image";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { TextStyle, Color } from "@tiptap/extension-text-style";
 import { Highlight } from "@tiptap/extension-highlight";
-import { TableKit } from "@tiptap/extension-table";
+import Table from "@tiptap/extension-table";
 import { Youtube } from "@tiptap/extension-youtube";
 import { Placeholder, CharacterCount } from "@tiptap/extensions";
 import {
@@ -104,7 +104,7 @@ const RichTextEditor = ({
       Color,
       Highlight.configure({ multicolor: false }),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
-      TableKit.configure({ table: { resizable: true } }),
+      Table.configure({ table: { resizable: true } }),
       Youtube.configure({
         nocookie: true,
         HTMLAttributes: { class: "embed-youtube" },
