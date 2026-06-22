@@ -2,12 +2,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
-import { TextAlign } from "@tiptap/extension-text-align";
-import { TextStyle, Color } from "@tiptap/extension-text-style";
-import { Highlight } from "@tiptap/extension-highlight";
-import Table from "@tiptap/extension-table";
-import { Youtube } from "@tiptap/extension-youtube";
-import { Placeholder, CharacterCount } from "@tiptap/extensions";
+import TextAlign from "@tiptap/extension-text-align";
+import { TextStyle } from "@tiptap/extension-text-style";
+import Highlight from "@tiptap/extension-highlight";
+import { Table } from "@tiptap/extension-table";
+import Youtube from "@tiptap/extension-youtube";
+import Color from "@tiptap/extension-color";
 import {
   Bold,
   Italic,
@@ -110,8 +110,6 @@ const RichTextEditor = ({
         HTMLAttributes: { class: "embed-youtube" },
       }),
       Iframe,
-      Placeholder.configure({ placeholder }),
-      CharacterCount,
     ],
     content: value,
     editorProps: {
@@ -402,8 +400,17 @@ const RichTextEditor = ({
 
       {/* Footer: live counts */}
       <div className="flex items-center justify-end gap-4 px-3 py-2 border-t border-white/10 text-[10px] uppercase tracking-widest text-white/30">
-        <span>{editor.storage.characterCount.words()} words</span>
-        <span>{editor.storage.characterCount.characters()} chars</span>
+        <span>{(() => {
+          try {
+            const text = editor.getText() || "";
+            return text.trim() ? text.trim().split(/\s+/).length : 0;
+          } catch (e) {
+            return 0;
+          }
+        })()} words</span>
+        <span>{(() => {
+          try { return editor.getText().length; } catch (e) { return 0; }
+        })()} chars</span>
       </div>
     </div>
   );

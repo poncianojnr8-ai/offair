@@ -17,6 +17,7 @@ import Login from "./pages/Dashboard/Login";
 
 // Pages
 import Home from "./pages/Home";
+import TestEditor from "./pages/TestEditor";
 import Interviews from "./pages/Interviews";
 import InterviewDetail from "./pages/InterviewDetail";
 import Videos from "./pages/Videos";
@@ -50,6 +51,7 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
             <Route path="/interviews" element={<Interviews />} />
+            <Route path="/test-editor" element={<TestEditor />} />
             <Route path="/interviews/:id" element={<InterviewDetail />} />
             <Route path="/about" element={<Navigate to="/interviews" replace />} />
             <Route path="/videos" element={<Videos />} />
