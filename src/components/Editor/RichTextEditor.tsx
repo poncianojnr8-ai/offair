@@ -36,6 +36,7 @@ import {
 } from "lucide-react";
 import { Iframe } from "./Iframe";
 import { toEmbedUrl, youtubeId } from "./embedUrl";
+import InputDialog from "./InputDialog";
 
 interface RichTextEditorProps {
   /** Current HTML value (controlled). */
@@ -46,6 +47,15 @@ interface RichTextEditorProps {
   uploadImage: (file: File) => Promise<string>;
   placeholder?: string;
 }
+
+type DialogConfig = {
+  title: string;
+  label: string;
+  placeholder?: string;
+  defaultValue?: string;
+  validate?: (v: string) => string | null;
+  onConfirm: (value: string) => void;
+} | null;
 
 const Divider = () => <div className="w-px h-5 bg-white/10 mx-1" />;
 
@@ -85,6 +95,8 @@ const RichTextEditor = ({
 }: RichTextEditorProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+
+  const [dialog, setDialog] = useState<DialogConfig>(null);
 
   const editor = useEditor({
     extensions: [
@@ -132,39 +144,48 @@ const RichTextEditor = ({
   const setLink = useCallback(() => {
     if (!editor) return;
     const previous = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("Link URL", previous ?? "https://");
-    if (url === null) return; // cancelled
-    if (url.trim() === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
-    }
-    editor
-      .chain()
-      .focus()
-      .extendMarkRange("link")
-      .setLink({ href: url.trim() })
-      .run();
+    setDialog({
+      title: "Insert Link",
+      label: "URL",
+      placeholder: "https://",
+      defaultValue: previous ?? "https://",
+      onConfirm: (url) => {
+        setDialog(null);
+        if (url === "") {
+          editor.chain().focus().extendMarkRange("link").unsetLink().run();
+          return;
+        }
+        editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+      },
+    });
   }, [editor]);
 
   const addYoutube = useCallback(() => {
     if (!editor) return;
-    const url = window.prompt("YouTube video URL");
-    if (!url) return;
-    if (!youtubeId(url)) {
-      alert("That doesn't look like a valid YouTube URL.");
-      return;
-    }
-    editor.commands.setYoutubeVideo({ src: url.trim() });
+    setDialog({
+      title: "YouTube Video",
+      label: "Video URL",
+      placeholder: "https://www.youtube.com/watch?v=...",
+      validate: (url) => (!url || youtubeId(url) ? null : "That doesn't look like a valid YouTube URL."),
+      onConfirm: (url) => {
+        setDialog(null);
+        editor.commands.setYoutubeVideo({ src: url });
+      },
+    });
   }, [editor]);
 
   const addEmbed = useCallback(() => {
     if (!editor) return;
-    const url = window.prompt(
-      "Embed URL (Spotify, Vimeo, SoundCloud, Google Maps, or any embed link)"
-    );
-    if (!url) return;
-    const src = toEmbedUrl(url) ?? url.trim();
-    editor.chain().focus().setIframe({ src }).run();
+    setDialog({
+      title: "Embed",
+      label: "Embed URL",
+      placeholder: "Spotify, Vimeo, SoundCloud, Google Maps…",
+      onConfirm: (url) => {
+        setDialog(null);
+        const src = toEmbedUrl(url) ?? url;
+        editor.chain().focus().setIframe({ src }).run();
+      },
+    });
   }, [editor]);
 
   const onPickImage = useCallback(
@@ -412,6 +433,17 @@ const RichTextEditor = ({
           try { return editor.getText().length; } catch (e) { return 0; }
         })()} chars</span>
       </div>
+
+      <InputDialog
+        open={dialog !== null}
+        title={dialog?.title ?? ""}
+        label={dialog?.label ?? ""}
+        placeholder={dialog?.placeholder}
+        defaultValue={dialog?.defaultValue}
+        validate={dialog?.validate}
+        onConfirm={(v) => dialog?.onConfirm(v)}
+        onCancel={() => setDialog(null)}
+      />
     </div>
   );
 };
