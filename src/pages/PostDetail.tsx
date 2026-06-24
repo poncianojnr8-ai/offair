@@ -111,31 +111,34 @@ const PostDetail = () => {
 
   return (
     <div className="w-full bg-[var(--bg-primary)]">
-      {/* Hero Image */}
-      <div className="relative w-full h-[40vh] sm:h-[55vh] md:h-[75vh] overflow-hidden">
+      {/* Hero Image with overlaid title */}
+      <div className="relative w-full h-[48vh] sm:h-[60vh] md:h-[78vh] overflow-hidden">
         <img
           src={post.image}
           alt={post.title}
           className="w-full h-full object-cover object-top"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-black/40 to-transparent" />
+        {/* Fade into the page, strongest at the bottom for title legibility */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[var(--bg-primary)] via-[var(--bg-primary)]/75 to-transparent" />
+
+        {/* Title sits in the fade at the bottom of the hero */}
+        <div className="absolute inset-x-0 bottom-0">
+          <div className="max-w-4xl mx-auto px-[var(--section-px)] pb-7 sm:pb-10 md:pb-14">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6 mb-4 text-xs uppercase tracking-[0.25em]">
+              <span className="bg-[var(--main)] text-white px-3 py-1 font-black">
+                {post.category}
+              </span>
+              <span className="text-white/60">{post.date}</span>
+            </div>
+            <h1 className="font-[var(--style-font)] text-white tracking-tighter leading-[0.95] text-[1.6rem] sm:text-[2.5rem] md:text-[4rem] drop-shadow-[0_2px_20px_rgba(0,0,0,0.6)]">
+              {post.title}
+            </h1>
+          </div>
+        </div>
       </div>
 
       {/* Article Content */}
       <div className="w-full px-[var(--section-px)] py-8 sm:py-12 md:py-16 max-w-4xl mx-auto">
-        {/* Meta */}
-        <div className="flex flex-wrap items-center gap-3 sm:gap-6 mb-5 sm:mb-6 text-xs uppercase tracking-[0.25em]">
-          <span className="bg-[var(--main)] text-white px-3 py-1 font-black">
-            {post.category}
-          </span>
-          <span className="text-white/40">{post.date}</span>
-        </div>
-
-        {/* Title */}
-        <h1 className="font-[var(--style-font)] text-white tracking-tighter leading-[0.95] text-[1.6rem] sm:text-[2.5rem] md:text-[4rem] mb-8 sm:mb-12">
-          {post.title}
-        </h1>
-
         {/* Divider */}
         <div className="w-16 h-[2px] bg-[var(--main)] mb-12" />
 

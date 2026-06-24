@@ -49,9 +49,9 @@ type HeroSlide = {
 // Hero headline positioning by placement option
 const HERO_POSITION: Record<string, string> = {
   "top-right":
-    "top-0 right-0 w-full md:max-w-[65%] pt-28 sm:pt-40 md:pt-52 lg:pt-60 items-end text-right",
+    "top-0 right-0 w-full md:max-w-[65%] pt-24 sm:pt-32 md:pt-40 lg:pt-44 items-end text-right",
   "top-left":
-    "top-0 left-0 w-full md:max-w-[65%] pt-28 sm:pt-40 md:pt-52 lg:pt-60 items-start text-left",
+    "top-0 left-0 w-full md:max-w-[65%] pt-24 sm:pt-32 md:pt-40 lg:pt-44 items-start text-left",
   "bottom-right":
     "bottom-0 right-0 w-full md:max-w-[65%] pb-24 sm:pb-28 lg:pb-32 items-end text-right",
   "bottom-left":
@@ -253,12 +253,6 @@ const Home = () => {
 
   const hero = slides[currentSlide] ?? fallbackSlide;
 
-  // Force multi-word headlines onto (at least) two lines: first word on line
-  // one, the remaining words wrap below. Single-word titles stay on one line.
-  const heroWords = hero.title.trim().split(/\s+/);
-  const heroFirstWord = heroWords[0] ?? "";
-  const heroRestWords = heroWords.slice(1).join(" ");
-
   return (
     <>
     <div className="w-full">
@@ -293,17 +287,11 @@ const Home = () => {
           }`}
         >
           <h1
-            className={`uppercase font-(--hero-font) text-white tracking-tight leading-[0.95] text-[2.25rem] sm:text-[3.5rem] md:text-[5rem] lg:text-[6.5rem] xl:text-[8rem] ${
+            className={`uppercase font-(--hero-font) text-white tracking-tight leading-[0.95] line-clamp-2 text-[2rem] sm:text-[3rem] md:text-[4rem] lg:text-[5rem] xl:text-[6rem] ${
               hero.weight === "regular" ? "font-normal" : "font-medium"
             }`}
           >
-            {heroFirstWord}
-            {heroRestWords && (
-              <>
-                <br />
-                {heroRestWords}
-              </>
-            )}
+            {hero.title}
           </h1>
           <p className="font-black uppercase mt-3 tracking-[0.3em] sm:tracking-[0.5em] md:tracking-[0.7em] text-[0.6rem] sm:text-xs md:text-sm lg:text-base text-(--main)">
             {hero.subtitle}
