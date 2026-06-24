@@ -16,25 +16,18 @@ type Video = {
   isFeatured?: boolean;
 };
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const CATEGORIES = [
-  "All",
-  "Music Videos",
-  "Sessions",
-  "Behind The Scenes",
-  "Freestyles",
-  "Interviews",
-];
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const Videos = () => {
   const [allVideos, setAllVideos] = useState<Video[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("All");
   const [featuredPlaying, setFeaturedPlaying] = useState(false);
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
+
+  // Category tabs: "All" + the shared categories collection
+  const categoryTabs = ["All", ...categories];
 
   // Fetch from Firestore
   useEffect(() => {
@@ -57,7 +50,23 @@ const Videos = () => {
       }
     };
 
+    const fetchCategories = async () => {
+      try {
+        const q = query(
+          collection(db, "categories"),
+          orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        setCategories(
+          snapshot.docs.map((d) => (d.data() as { name: string }).name)
+        );
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      }
+    };
+
     fetchVideos();
+    fetchCategories();
   }, []);
 
   // Separate featured from the grid
@@ -185,7 +194,7 @@ const Videos = () => {
         <section className="w-full px-(--section-px) mb-8 sm:mb-10">
           <div className="overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
             <div className="flex items-center gap-2 w-max sm:w-auto sm:flex-wrap">
-              {CATEGORIES.map((cat) => (
+              {categoryTabs.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => handleCategoryChange(cat)}

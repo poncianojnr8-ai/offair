@@ -2,7 +2,6 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   FileText,
-  TrendingUp,
   Tag,
   LogOut,
   Tv,
@@ -24,16 +23,10 @@ const Sidebar = () => {
   const menuItems = [
     { name: "Overview", path: "/admin", icon: <LayoutDashboard size={20} /> },
     { name: "Posts", path: "/admin/posts", icon: <FileText size={20} /> },
-    { name: "Hero Posts", path: "/admin/hero-posts", icon: <FileText size={20} /> },
     {
       name: "Categories",
       path: "/admin/categories",
       icon: <Tag size={20} />,
-    },
-    {
-      name: "Trending",
-      path: "/admin/trending",
-      icon: <TrendingUp size={20} />,
     },
     {
       name: "Videos",

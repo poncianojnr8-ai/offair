@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { db } from "../firebase";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  increment,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+} from "firebase/firestore";
 import { Link2, Check } from "lucide-react";
 
 // Inline social share icons
@@ -21,14 +30,25 @@ interface InterviewData {
   id: string;
   title: string;
   guest?: string;
+  category?: string;
   date?: string;
   image: string;
   body?: string;
+  views?: number;
 }
+
+type RelatedItem = {
+  id: string;
+  title: string;
+  image: string;
+  category?: string;
+  date?: string;
+};
 
 const InterviewDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [item, setItem] = useState<InterviewData | null>(null);
+  const [related, setRelated] = useState<RelatedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -60,7 +80,32 @@ const InterviewDetail = () => {
         const docRef = doc(db, "interviews", id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setItem({ id: docSnap.id, ...docSnap.data() } as InterviewData);
+          const data = { id: docSnap.id, ...docSnap.data() } as InterviewData;
+          setItem(data);
+
+          // Count the view (fire and forget)
+          updateDoc(docRef, { views: increment(1) }).catch(() => {});
+
+          // Related: other interviews, same category first, then recent
+          try {
+            const snap = await getDocs(
+              query(collection(db, "interviews"), orderBy("createdAt", "desc"))
+            );
+            const others = snap.docs
+              .map((d) => ({ id: d.id, ...d.data() }) as RelatedItem & {
+                category?: string;
+              })
+              .filter((r) => r.id !== docSnap.id);
+            const sameCat = others.filter(
+              (r) => data.category && r.category === data.category
+            );
+            const rest = others.filter(
+              (r) => !(data.category && r.category === data.category)
+            );
+            setRelated([...sameCat, ...rest].slice(0, 4));
+          } catch (relErr) {
+            console.error("Error fetching related interviews:", relErr);
+          }
         } else {
           setNotFound(true);
         }
@@ -114,14 +159,24 @@ const InterviewDetail = () => {
       </div>
 
       {/* Content */}
-      <div className="w-full px-[var(--section-px)] py-8 sm:py-12 md:py-16 max-w-4xl mx-auto">
+      <div className="w-full px-[var(--section-px)] py-8 sm:py-12 md:py-16 max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12">
+        {/* Main column */}
+        <div className="lg:col-span-2 min-w-0">
         {/* Meta */}
         <div className="flex flex-wrap items-center gap-3 sm:gap-6 mb-5 sm:mb-6 text-xs uppercase tracking-[0.25em]">
           <span className="bg-[var(--main)] text-white px-3 py-1 font-black">
             Interview
           </span>
+          {item.category && (
+            <span className="text-white/60">{item.category}</span>
+          )}
           {item.guest && <span className="text-white/60">{item.guest}</span>}
           {item.date && <span className="text-white/40">{item.date}</span>}
+          {typeof item.views === "number" && (
+            <span className="text-white/40">
+              {item.views.toLocaleString()} views
+            </span>
+          )}
         </div>
 
         {/* Title */}
@@ -191,6 +246,45 @@ const InterviewDetail = () => {
             ← Back to Interviews
           </Link>
         </div>
+        </div>
+
+        {/* Related sidebar */}
+        {related.length > 0 && (
+          <aside className="lg:col-span-1">
+            <div className="lg:sticky lg:top-24">
+              <h3 className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-bold mb-5">
+                Related
+              </h3>
+              <div className="flex flex-col gap-4">
+                {related.map((r) => (
+                  <Link
+                    key={r.id}
+                    to={`/interviews/${r.id}`}
+                    className="group flex gap-4 no-underline"
+                  >
+                    <div className="w-24 h-16 shrink-0 overflow-hidden bg-black">
+                      <img
+                        src={r.image}
+                        alt={r.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      {r.category && (
+                        <span className="text-[9px] font-black uppercase tracking-widest text-[var(--main)]">
+                          {r.category}
+                        </span>
+                      )}
+                      <p className="text-white/80 text-xs font-bold leading-tight line-clamp-2 group-hover:text-white transition-colors">
+                        {r.title}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );

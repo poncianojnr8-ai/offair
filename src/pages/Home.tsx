@@ -12,7 +12,7 @@ import {
 
 import Post from "../components/News/Post";
 import Trending from "../components/News/Trending";
-import Picks from "../components/News/Picks";
+import SocialEmbedModal from "../components/Social/SocialEmbedModal";
 
 import bgImage from "../assets/images/main-bg.png";
 
@@ -36,19 +36,27 @@ type TrendingData = {
   image: string;
 };
 
-type PickData = {
-  id: string;
-  title: string;
-  image: string;
-  link?: string | null;
-};
-
 type HeroSlide = {
   id: string;
   title: string;
   subtitle: string;
   link: string;
   image: string;
+  weight: "bold" | "regular";
+  placement: string;
+};
+
+// Hero headline positioning by placement option
+const HERO_POSITION: Record<string, string> = {
+  "top-right":
+    "top-0 right-0 w-full md:max-w-[65%] pt-28 sm:pt-40 md:pt-52 lg:pt-60 items-end text-right",
+  "top-left":
+    "top-0 left-0 w-full md:max-w-[65%] pt-28 sm:pt-40 md:pt-52 lg:pt-60 items-start text-left",
+  "bottom-right":
+    "bottom-0 right-0 w-full md:max-w-[65%] pb-24 sm:pb-28 lg:pb-32 items-end text-right",
+  "bottom-left":
+    "bottom-0 left-0 w-full md:max-w-[65%] pb-24 sm:pb-28 lg:pb-32 items-start text-left",
+  center: "inset-0 w-full justify-center items-center text-center",
 };
 
 type SocialPost = {
@@ -61,7 +69,7 @@ type SocialPost = {
 
 // Social handles (used for the "follow" fallback + card labels)
 const TIKTOK_HANDLE = "poncianojnr8";
-const INSTAGRAM_HANDLE = "poncianojnr8";
+const INSTAGRAM_HANDLE = "offairwithponciano";
 
 const TikTokGlyph = ({ size = 16 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
@@ -80,13 +88,15 @@ const fallbackSlide: HeroSlide = {
   subtitle: "ADD A HERO POST TO GET STARTED",
   link: "",
   image: bgImage,
+  weight: "bold",
+  placement: "top-right",
 };
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const Home = () => {
-  // Hero slider — driven entirely by the `heroPosts` collection
-  const [slides, setSlides] = useState<HeroSlide[]>([]);
+  // Hero slider + Trending are both derived from the `posts` collection
+  // (posts flagged with addToHero / addToTrending).
   const [currentSlide, setCurrentSlide] = useState(0);
 
   // Posts
@@ -94,18 +104,12 @@ const Home = () => {
   const [loadingPosts, setLoadingPosts] = useState(true);
 
   // Trending
-  const [trends, setTrends] = useState<TrendingData[]>([]);
-  const [loadingTrends, setLoadingTrends] = useState(true);
   const [trendPage, setTrendPage] = useState(1);
   const [trendSearch, setTrendSearch] = useState("");
 
-  // PJ's Picks
-  const [picks, setPicks] = useState<PickData[]>([]);
-  const [loadingPicks, setLoadingPicks] = useState(true);
-  const [currentPick, setCurrentPick] = useState(0);
-
   // Social posts (TikTok / Instagram cards)
   const [socialPosts, setSocialPosts] = useState<SocialPost[]>([]);
+  const [activePost, setActivePost] = useState<SocialPost | null>(null);
 
   // Newsletter
   const [email, setEmail] = useState("");
@@ -116,33 +120,6 @@ const Home = () => {
   // ── Fetches ───────────────────────────────────────────────────────────────
 
   useEffect(() => {
-    const fetchHeroPosts = async () => {
-      try {
-        const q = query(
-          collection(db, "heroPosts"),
-          orderBy("createdAt", "desc")
-        );
-        const snapshot = await getDocs(q);
-        const data: HeroSlide[] = snapshot.docs.map((doc) => {
-          const d = doc.data() as {
-            title?: string;
-            category?: string;
-            image?: string;
-          };
-          return {
-            id: doc.id,
-            title: (d.title || "").toUpperCase(),
-            subtitle: (d.category || "Featured").toUpperCase(),
-            link: `/hero/${doc.id}`,
-            image: d.image || bgImage,
-          };
-        });
-        setSlides(data);
-      } catch (error) {
-        console.error("Error fetching hero posts:", error);
-      }
-    };
-
     const fetchPosts = async () => {
       try {
         const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
@@ -152,40 +129,6 @@ const Home = () => {
         console.error("Error fetching posts:", error);
       } finally {
         setLoadingPosts(false);
-      }
-    };
-
-    const fetchTrends = async () => {
-      try {
-        const q = query(collection(db, "trending"), orderBy("rank", "asc"));
-        const snapshot = await getDocs(q);
-        setTrends(
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as TrendingData[]
-        );
-      } catch (error) {
-        console.error("Error fetching trending:", error);
-      } finally {
-        setLoadingTrends(false);
-      }
-    };
-
-    const fetchPicks = async () => {
-      try {
-        const q = query(collection(db, "picks"), orderBy("createdAt", "desc"));
-        const snapshot = await getDocs(q);
-        setPicks(
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as PickData[]
-        );
-      } catch (error) {
-        console.error("Error fetching picks:", error);
-      } finally {
-        setLoadingPicks(false);
       }
     };
 
@@ -207,12 +150,47 @@ const Home = () => {
       }
     };
 
-    fetchHeroPosts();
     fetchPosts();
-    fetchTrends();
-    fetchPicks();
     fetchSocial();
   }, []);
+
+  // ── Hero slides + Trending, derived from flagged posts ────────────────────
+
+  const slides = useMemo<HeroSlide[]>(
+    () =>
+      posts
+        .filter((p) => p.addToHero)
+        .map((p) => ({
+          id: p.id,
+          title: (p.title || "").toUpperCase(),
+          subtitle: (p.category || "Featured").toUpperCase(),
+          link: `/posts/${p.id}`,
+          image: p.image || bgImage,
+          weight: p.heroHeadlineWeight === "regular" ? "regular" : "bold",
+          placement: p.heroHeadlinePlacement || "top-right",
+        })),
+    [posts]
+  );
+
+  const trends = useMemo<TrendingData[]>(
+    () =>
+      posts
+        .filter((p) => p.addToTrending)
+        .sort((a, b) => {
+          const ra =
+            typeof a.trendingRank === "number" ? a.trendingRank : Infinity;
+          const rb =
+            typeof b.trendingRank === "number" ? b.trendingRank : Infinity;
+          return ra - rb;
+        })
+        .map((p, i) => ({
+          id: p.id,
+          title: p.title,
+          rank: typeof p.trendingRank === "number" ? p.trendingRank : i + 1,
+          image: p.image,
+        })),
+    [posts]
+  );
 
   // ── Auto-rotate hero slider ───────────────────────────────────────────────
 
@@ -224,15 +202,10 @@ const Home = () => {
     return () => clearInterval(timer);
   }, [slides.length]);
 
-  // ── Auto-rotate PJ's Pick every 10s ─────────────────────────────────────
-
+  // Keep the active slide index in range if the slide set shrinks.
   useEffect(() => {
-    if (picks.length <= 1) return;
-    const timer = setInterval(() => {
-      setCurrentPick((prev) => (prev === picks.length - 1 ? 0 : prev + 1));
-    }, 10000);
-    return () => clearInterval(timer);
-  }, [picks.length]);
+    if (currentSlide > slides.length - 1) setCurrentSlide(0);
+  }, [slides.length, currentSlide]);
 
   // ── Trending filter + pagination ─────────────────────────────────────────
 
@@ -280,7 +253,14 @@ const Home = () => {
 
   const hero = slides[currentSlide] ?? fallbackSlide;
 
+  // Force multi-word headlines onto (at least) two lines: first word on line
+  // one, the remaining words wrap below. Single-word titles stay on one line.
+  const heroWords = hero.title.trim().split(/\s+/);
+  const heroFirstWord = heroWords[0] ?? "";
+  const heroRestWords = heroWords.slice(1).join(" ");
+
   return (
+    <>
     <div className="w-full">
 
       {/* ── Hero Slider ──────────────────────────────────────────────────── */}
@@ -289,46 +269,65 @@ const Home = () => {
           <img
             src={hero.image}
             alt="Background"
-            className="w-full h-full object-cover opacity-50"
+            className="w-full h-full object-cover opacity-[0.68]"
           />
-          <div className="absolute inset-0 bg-linear-to-b from-(--bg-primary) via-transparent to-(--bg-primary)" />
+          {/* Bottom fade only — keeps the photo vivid while blending into the page */}
+          <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-(--bg-primary)" />
+          {/* Subtle left vignette so text stays legible */}
+          <div className="absolute inset-0 bg-linear-to-r from-(--bg-primary)/60 via-transparent to-transparent" />
         </div>
 
-        <div className="relative z-10 w-full px-(--section-px) text-center">
-          <h1 className="uppercase font-(--style-font) text-white tracking-tighter leading-[0.9] text-[1.4rem] sm:text-[2.5rem] md:text-[4rem] lg:text-[6rem]">
-            {hero.title}
+        {/* Whole hero image links to the article */}
+        {hero.link && (
+          <Link
+            to={hero.link}
+            aria-label={hero.title}
+            className="absolute inset-0 z-5"
+          />
+        )}
+
+        {/* Headline — placement & weight controlled per-article in the editor */}
+        <div
+          className={`absolute z-10 px-(--section-px) pointer-events-none flex flex-col ${
+            HERO_POSITION[hero.placement] ?? HERO_POSITION["top-right"]
+          }`}
+        >
+          <h1
+            className={`uppercase font-(--hero-font) text-white tracking-tight leading-[0.95] text-[2.25rem] sm:text-[3.5rem] md:text-[5rem] lg:text-[6.5rem] xl:text-[8rem] ${
+              hero.weight === "regular" ? "font-normal" : "font-medium"
+            }`}
+          >
+            {heroFirstWord}
+            {heroRestWords && (
+              <>
+                <br />
+                {heroRestWords}
+              </>
+            )}
           </h1>
-          {hero.link ? (
+          <p className="font-black uppercase mt-3 tracking-[0.3em] sm:tracking-[0.5em] md:tracking-[0.7em] text-[0.6rem] sm:text-xs md:text-sm lg:text-base text-(--main)">
+            {hero.subtitle}
+          </p>
+        </div>
+
+        {/* "Click Here" CTA — bottom right of the hero */}
+        {hero.link && (
+          <div className="absolute bottom-8 right-6 sm:bottom-10 sm:right-8 lg:bottom-14 lg:right-12 z-20">
             <Link
               to={hero.link}
-              className="font-black uppercase mt-4 tracking-[0.3em] sm:tracking-[0.5em] md:tracking-[0.8em] text-[0.65rem] sm:text-xs md:text-sm text-(--main) hover:text-white transition-colors duration-300 cursor-pointer inline-block no-underline"
+              className="group relative inline-flex items-center gap-2.5 bg-(--main) text-white font-black uppercase tracking-[0.25em] text-[0.6rem] sm:text-xs px-7 sm:px-9 py-3.5 no-underline overflow-hidden transition-all duration-300 hover:text-black active:scale-95 shadow-[0_0_30px_rgba(222,44,44,0.35)]"
             >
-              {hero.subtitle}
+              <span className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
+              <span className="relative z-10">Click Here</span>
+              <span className="relative z-10 flex group-hover:translate-x-1.5 transition-transform duration-300">
+                <ArrowRight size={15} className="animate-pulse group-hover:animate-none" />
+              </span>
             </Link>
-          ) : (
-            <p className="font-black uppercase mt-4 tracking-[0.3em] sm:tracking-[0.5em] md:tracking-[0.8em] text-[0.65rem] sm:text-xs md:text-sm">
-              {hero.subtitle}
-            </p>
-          )}
+          </div>
+        )}
 
-          {hero.link && (
-            <div className="mt-7 sm:mt-9 flex justify-center">
-              <Link
-                to={hero.link}
-                className="group relative inline-flex items-center gap-2.5 bg-(--main) text-white font-black uppercase tracking-[0.25em] text-[0.6rem] sm:text-xs px-7 sm:px-9 py-3.5 no-underline overflow-hidden transition-all duration-300 hover:text-black active:scale-95 shadow-[0_0_30px_rgba(222,44,44,0.35)]"
-              >
-                {/* Sliding fill on hover */}
-                <span className="absolute inset-0 bg-white translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-                <span className="relative z-10">Show more</span>
-                <span className="relative z-10 flex group-hover:translate-x-1.5 transition-transform duration-300">
-                  <ArrowRight size={15} className="animate-pulse group-hover:animate-none" />
-                </span>
-              </Link>
-            </div>
-          )}
-        </div>
-
-        <div className="absolute bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 flex gap-4 z-20">
+        {/* Slide dots — bottom centre */}
+        <div className="absolute bottom-8 sm:bottom-12 lg:bottom-16 left-1/2 -translate-x-1/2 flex gap-4 z-20">
           {slides.map((_, index) => (
             <button
               key={index}
@@ -398,7 +397,7 @@ const Home = () => {
                       </div>
                     </div>
 
-                    {loadingTrends ? (
+                    {loadingPosts ? (
                       <p className="text-white/20 animate-pulse uppercase tracking-widest text-xs">
                         Receiving Signal...
                       </p>
@@ -414,7 +413,7 @@ const Home = () => {
                       </div>
                     )}
 
-                    {!loadingTrends && filteredTrends.length > TRENDS_PER_PAGE && (
+                    {!loadingPosts && filteredTrends.length > TRENDS_PER_PAGE && (
                       <div className="flex items-center justify-between pt-2">
                         <p className="text-white/50 text-xs uppercase tracking-[0.25em]">
                           Page {trendPage} / {totalTrendPages}
@@ -461,7 +460,8 @@ const Home = () => {
                       rel="noopener noreferrer"
                       className="text-white text-sm font-bold no-underline hover:text-[var(--main)] transition-colors"
                     >
-                      Listen to what we're listening to. Follow the Off Air playlist.
+                      Listen to what we're listening to. Follow the Off Air
+                      Spotify playlist.
                     </a>
                   </div>
 
@@ -503,47 +503,77 @@ const Home = () => {
           </div>
 
           {socialPosts.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-              {socialPosts.map((post) => (
-                <a
-                  key={post.id}
-                  href={post.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group bg-[var(--bg-secondary)] border border-white/5 no-underline overflow-hidden"
-                >
-                  <div className="aspect-square relative overflow-hidden">
-                    <img
-                      src={post.image}
-                      alt={post.caption || post.platform}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-all duration-300" />
-                    <span className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/70 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1">
-                      {post.platform === "tiktok" ? (
-                        <TikTokGlyph size={11} />
-                      ) : (
-                        <InstagramIcon size={11} />
-                      )}
-                      {post.platform}
-                    </span>
-                  </div>
-                  <div className="p-3 sm:p-4 flex items-center justify-between gap-2">
-                    <p className="text-white/60 text-[11px] sm:text-xs line-clamp-1">
-                      {post.caption ||
-                        `@${
-                          post.platform === "tiktok"
-                            ? TIKTOK_HANDLE
-                            : INSTAGRAM_HANDLE
-                        }`}
-                    </p>
-                    <span className="text-[var(--main)] text-[10px] uppercase tracking-widest font-black shrink-0 group-hover:text-white transition-colors">
-                      View →
-                    </span>
-                  </div>
-                </a>
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+                {socialPosts.slice(0, 8).map((post) => (
+                  <button
+                    key={post.id}
+                    type="button"
+                    onClick={() => setActivePost(post)}
+                    className="group bg-[var(--bg-secondary)] border border-white/5 overflow-hidden text-left w-full"
+                  >
+                    <div className="aspect-square relative overflow-hidden">
+                      <img
+                        src={post.image}
+                        alt={post.caption || post.platform}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-all duration-300" />
+                      <span className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/70 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1">
+                        {post.platform === "tiktok" ? (
+                          <TikTokGlyph size={11} />
+                        ) : (
+                          <InstagramIcon size={11} />
+                        )}
+                        {post.platform}
+                      </span>
+                    </div>
+                    <div className="p-3 sm:p-4 flex items-center justify-between gap-2">
+                      <p className="text-white/60 text-[11px] sm:text-xs line-clamp-1">
+                        {post.caption ||
+                          `@${post.platform === "tiktok" ? TIKTOK_HANDLE : INSTAGRAM_HANDLE}`}
+                      </p>
+                      <span className="text-[var(--main)] text-[10px] uppercase tracking-widest font-black shrink-0 group-hover:text-white transition-colors">
+                        View →
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* View More row */}
+              <div className="flex justify-end mt-6 sm:mt-8">
+                <div className="flex items-center gap-5">
+                  <a
+                    href={`https://www.tiktok.com/@${TIKTOK_HANDLE}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-white/30 hover:text-white transition-colors text-[10px] uppercase tracking-[0.2em]"
+                  >
+                    <TikTokGlyph size={12} />
+                    TikTok
+                  </a>
+                  <a
+                    href={`https://www.instagram.com/${INSTAGRAM_HANDLE}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-white/30 hover:text-white transition-colors text-[10px] uppercase tracking-[0.2em]"
+                  >
+                    <InstagramIcon size={12} />
+                    Instagram
+                  </a>
+                  <span className="w-px h-3 bg-white/10" />
+                  <a
+                    href={`https://www.tiktok.com/@${TIKTOK_HANDLE}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--main)] text-[10px] uppercase tracking-[0.2em] font-black hover:opacity-70 transition-opacity"
+                  >
+                    View More →
+                  </a>
+                </div>
+              </div>
+            </>
           ) : (
             // Fallback: follow cards when no posts have been added yet
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
@@ -647,6 +677,9 @@ const Home = () => {
       </section>
 
     </div>
+
+    <SocialEmbedModal post={activePost} onClose={() => setActivePost(null)} />
+    </>
   );
 };
 

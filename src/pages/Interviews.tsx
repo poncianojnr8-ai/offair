@@ -10,16 +10,22 @@ type Interview = {
   id: string;
   title: string;
   guest?: string;
+  category?: string;
   image: string;
   date?: string;
+  views?: number;
   isFeatured?: boolean;
 };
+
+const PER_PAGE = 9;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const Interviews = () => {
   const [interviews, setInterviews] = useState<Interview[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [visibleCount, setVisibleCount] = useState(PER_PAGE);
 
   useEffect(() => {
     const fetchInterviews = async () => {
@@ -48,6 +54,25 @@ const Interviews = () => {
   const featured =
     interviews.find((i) => i.isFeatured) ?? interviews[0] ?? null;
   const rest = interviews.filter((i) => i.id !== featured?.id);
+
+  // Category filter tabs derived from the interviews themselves
+  const categoryTabs = [
+    "All",
+    ...Array.from(
+      new Set(rest.map((i) => i.category).filter((c): c is string => !!c))
+    ),
+  ];
+
+  const filteredRest =
+    activeCategory === "All"
+      ? rest
+      : rest.filter((i) => i.category === activeCategory);
+  const visibleRest = filteredRest.slice(0, visibleCount);
+
+  const selectCategory = (cat: string) => {
+    setActiveCategory(cat);
+    setVisibleCount(PER_PAGE);
+  };
 
   return (
     <div className="w-full bg-(--bg-primary)">
@@ -131,8 +156,32 @@ const Interviews = () => {
       {/* ── Interview Grid ──────────────────────────────────────────────── */}
       {!loading && rest.length > 0 && (
         <section className="w-full px-(--section-px) pb-16 sm:pb-24">
+          {/* Heading + category filter */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 sm:mb-8">
+            <h2 className="font-(--style-font) text-white tracking-tighter text-2xl sm:text-3xl">
+              INTERVIEWS
+            </h2>
+            {categoryTabs.length > 1 && (
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-none -mx-4 px-4 sm:mx-0 sm:px-0">
+                {categoryTabs.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => selectCategory(cat)}
+                    className={`shrink-0 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all duration-200 ${
+                      activeCategory === cat
+                        ? "bg-(--main) text-white"
+                        : "bg-(--bg-secondary) text-white/50 hover:text-white border border-white/10 hover:border-white/30"
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-white/5">
-            {rest.map((interview) => (
+            {visibleRest.map((interview) => (
               <Link
                 key={interview.id}
                 to={`/interviews/${interview.id}`}
@@ -145,9 +194,14 @@ const Interviews = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
                   />
                   <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all duration-300" />
-                  <div className="absolute top-3 right-3 w-9 h-9 rounded-full bg-(--main) flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <ArrowUpRight size={16} className="text-white" />
-                  </div>
+                  <span className="absolute top-3 left-3 text-[9px] font-black uppercase tracking-widest bg-black/70 text-white px-2 py-1">
+                    Interview
+                  </span>
+                  {interview.category && (
+                    <span className="absolute bottom-3 right-3 text-[9px] font-black uppercase tracking-widest bg-(--main) text-white px-2 py-1">
+                      {interview.category}
+                    </span>
+                  )}
                 </div>
 
                 <div className="p-4 sm:p-5 border-t border-white/5">
@@ -159,15 +213,32 @@ const Interviews = () => {
                   <h3 className="text-white font-bold text-sm leading-tight mt-1 group-hover:text-(--main) transition-colors duration-200">
                     {interview.title}
                   </h3>
-                  {interview.date && (
-                    <p className="text-white/25 text-[9px] uppercase tracking-widest mt-3">
-                      {interview.date}
-                    </p>
-                  )}
+                  <div className="flex items-center justify-between mt-3 text-[9px] uppercase tracking-widest text-white/25">
+                    <span>{interview.date}</span>
+                    <span>{(interview.views ?? 0).toLocaleString()} views</span>
+                  </div>
                 </div>
               </Link>
             ))}
           </div>
+
+          {/* Load More */}
+          {visibleCount < filteredRest.length && (
+            <div className="flex justify-center mt-10">
+              <button
+                onClick={() => setVisibleCount((c) => c + PER_PAGE)}
+                className="bg-(--main) text-white font-black uppercase tracking-widest text-[10px] px-10 py-4 hover:bg-(--main-dark) transition-all active:scale-95"
+              >
+                Load More
+              </button>
+            </div>
+          )}
+
+          {filteredRest.length === 0 && (
+            <p className="text-white/20 uppercase tracking-widest text-xs text-center py-16">
+              No interviews in this category yet.
+            </p>
+          )}
         </section>
       )}
 

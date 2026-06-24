@@ -39,7 +39,7 @@ const Trending = ({ id, title, rank, image }: TrendingProps) => {
   if (id) {
     return (
       <Link
-        to={`/trending/${id}`}
+        to={`/posts/${id}`}
         className="block no-underline hover:no-underline"
       >
         {card}

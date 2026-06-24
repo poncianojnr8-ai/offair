@@ -9,7 +9,8 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
-import { Trash2, Edit, Plus, ExternalLink } from "lucide-react";
+import { Trash2, Edit, Plus, ExternalLink, DownloadCloud, Loader2 } from "lucide-react";
+import { migrateLegacyContent } from "../../../utils/migrateLegacy";
 
 interface Post {
   id: string;
@@ -22,7 +23,33 @@ interface Post {
 const AdminPosts = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [migrating, setMigrating] = useState(false);
   const navigate = useNavigate();
+
+  const handleMigrate = async () => {
+    if (
+      !window.confirm(
+        "Import existing Hero Posts and Trending items into Articles? " +
+          "This is safe to run more than once — already-imported items are skipped."
+      )
+    )
+      return;
+    setMigrating(true);
+    try {
+      const result = await migrateLegacyContent();
+      await fetchPosts();
+      alert(
+        `Migration complete.\n\nHero imported: ${result.heroImported}\n` +
+          `Trending imported: ${result.trendingImported}\n` +
+          `Skipped (already imported): ${result.skipped}`
+      );
+    } catch (error) {
+      console.error("Migration failed:", error);
+      alert("Migration failed. Check the console for details.");
+    } finally {
+      setMigrating(false);
+    }
+  };
 
   const fetchPosts = async () => {
     setLoading(true);
@@ -63,12 +90,27 @@ const AdminPosts = () => {
             MANAGE ARTICLES
           </h1>
         </div>
-        <button
-          onClick={() => navigate("/admin/posts/create")}
-          className="bg-[var(--main)] text-white px-6 py-3 font-black uppercase text-xs tracking-widest flex items-center gap-2 hover:bg-red-700 transition-all active:scale-95"
-        >
-          <Plus size={16} /> Create New Post
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleMigrate}
+            disabled={migrating}
+            title="Import legacy Hero Posts & Trending into Articles"
+            className="border border-white/15 text-white/70 px-5 py-3 font-black uppercase text-xs tracking-widest flex items-center gap-2 hover:text-white hover:border-white/40 transition-all active:scale-95 disabled:opacity-50"
+          >
+            {migrating ? (
+              <Loader2 size={16} className="animate-spin" />
+            ) : (
+              <DownloadCloud size={16} />
+            )}
+            Import Legacy
+          </button>
+          <button
+            onClick={() => navigate("/admin/posts/create")}
+            className="bg-[var(--main)] text-white px-6 py-3 font-black uppercase text-xs tracking-widest flex items-center gap-2 hover:bg-red-700 transition-all active:scale-95"
+          >
+            <Plus size={16} /> Create New Post
+          </button>
+        </div>
       </div>
 
       {/* Table Section */}

@@ -14,6 +14,7 @@ import DashboardLayout from "./components/Dashboard/Layout/DashboardLayout";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Dashboard/Login";
+import Overview from "./pages/Dashboard/Overview";
 
 // Pages
 import Home from "./pages/Home";
@@ -67,7 +68,7 @@ function App() {
           {/* --- Admin Dashboard Routes (protected) --- */}
           <Route element={<ProtectedRoute />}>
             <Route path="/admin" element={<DashboardLayout />}>
-              <Route index element={<div className="text-white">Welcome</div>} />
+              <Route index element={<Overview />} />
               <Route path="posts" element={<AdminPosts />} />
               <Route path="posts/create" element={<CreateEditPost />} />
               <Route path="posts/edit/:id" element={<CreateEditPost />} />

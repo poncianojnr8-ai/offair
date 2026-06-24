@@ -34,6 +34,7 @@ import {
   Redo2,
   Loader2,
 } from "lucide-react";
+import { Placeholder } from "@tiptap/extensions";
 import { Iframe } from "./Iframe";
 import { toEmbedUrl, youtubeId } from "./embedUrl";
 import InputDialog from "./InputDialog";
@@ -122,6 +123,7 @@ const RichTextEditor = ({
         HTMLAttributes: { class: "embed-youtube" },
       }),
       Iframe,
+      Placeholder.configure({ placeholder }),
     ],
     content: value,
     editorProps: {

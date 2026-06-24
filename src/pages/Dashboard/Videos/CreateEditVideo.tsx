@@ -7,17 +7,18 @@ import {
   addDoc,
   updateDoc,
   collection,
+  getDocs,
+  query,
+  orderBy,
   serverTimestamp,
 } from "firebase/firestore";
 import { ArrowLeft, Loader2, Youtube } from "lucide-react";
+import { Link } from "react-router-dom";
 
-const VIDEO_CATEGORIES = [
-  "Music Videos",
-  "Sessions",
-  "Behind The Scenes",
-  "Freestyles",
-  "Interviews",
-];
+interface Category {
+  id: string;
+  name: string;
+}
 
 // Extract YouTube video ID from any common URL format
 function extractYouTubeId(input: string): string {
@@ -50,6 +51,33 @@ const CreateEditVideo = () => {
   const [isFeatured, setIsFeatured] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingPost, setLoadingPost] = useState(isEditMode);
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
+  // Fetch categories from the shared categories collection
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const q = query(
+          collection(db, "categories"),
+          orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        setCategories(
+          snapshot.docs.map((d) => ({
+            id: d.id,
+            name: (d.data() as { name: string }).name,
+          }))
+        );
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Derive embedId live as user types the URL
   useEffect(() => {
@@ -237,25 +265,41 @@ const CreateEditVideo = () => {
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
                 Category
               </label>
-              <select
-                required
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white outline-none focus:border-[var(--main)] transition-all cursor-pointer appearance-none"
-              >
-                <option value="" disabled className="bg-[var(--bg-secondary)]">
-                  Select a category...
-                </option>
-                {VIDEO_CATEGORIES.map((cat) => (
-                  <option
-                    key={cat}
-                    value={cat}
-                    className="bg-[var(--bg-secondary)]"
+              {loadingCategories ? (
+                <div className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white/20 text-xs animate-pulse uppercase tracking-widest">
+                  Loading categories...
+                </div>
+              ) : categories.length === 0 ? (
+                <div className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white/30 text-xs">
+                  No categories found.{" "}
+                  <Link
+                    to="/admin/categories"
+                    className="text-[var(--main)] hover:text-white underline"
                   >
-                    {cat}
+                    Add one first →
+                  </Link>
+                </div>
+              ) : (
+                <select
+                  required
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white outline-none focus:border-[var(--main)] transition-all cursor-pointer appearance-none"
+                >
+                  <option value="" disabled className="bg-[var(--bg-secondary)]">
+                    Select a category...
                   </option>
-                ))}
-              </select>
+                  {categories.map((cat) => (
+                    <option
+                      key={cat.id}
+                      value={cat.name}
+                      className="bg-[var(--bg-secondary)]"
+                    >
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* Flags */}

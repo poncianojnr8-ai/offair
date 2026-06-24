@@ -12,6 +12,11 @@ const Contact = () => {
   const [selectedPlatform, setSelectedPlatform] = useState("instagram");
   const [socialUrl, setSocialUrl] = useState("");
 
+  const [status, setStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
   const platforms = ["Instagram", "TikTok", "YouTube", "Spotify / Apple Music", "SoundCloud", "Other"];
 
   const handleAddLink = () => {
@@ -23,6 +28,39 @@ const Contact = () => {
 
   const handleRemoveLink = (index: number) => {
     setSocialLinks(socialLinks.filter((_, i) => i !== index));
+  };
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim())
+      return;
+
+    setStatus("submitting");
+    setErrorMsg("");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, links: socialLinks }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Something went wrong.");
+      }
+      setStatus("success");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      setSocialLinks([]);
+    } catch (err) {
+      console.error("Contact submit error:", err);
+      setErrorMsg(err instanceof Error ? err.message : "Something went wrong.");
+      setStatus("error");
+    }
   };
 
   return (
@@ -40,59 +78,90 @@ const Contact = () => {
                       Contact Us
                     </h3>
 
-                    <p className="mt-6 text-white/70 text-base md:text-lg leading-relaxed max-w-2xl">
+                    <p className="mt-6 text-white text-base md:text-lg font-bold leading-relaxed max-w-2xl">
                       Would you like to be featured on Off Air or would you like to
                       collaborate? Drop us a message and we will get back to you.
                     </p>
                   </div>
 
                   {/* Contact Form */}
-                  <form className="flex flex-col gap-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {status === "success" ? (
+                    <div className="border border-[var(--main)]/40 bg-[var(--main)]/10 p-6">
+                      <p className="text-white font-bold uppercase tracking-widest text-sm">
+                        Message sent.
+                      </p>
+                      <p className="text-white/60 text-sm mt-2">
+                        Thanks for reaching out — we'll get back to you soon.
+                      </p>
+                    </div>
+                  ) : (
+                    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <input
+                          type="text"
+                          name="name"
+                          required
+                          value={formData.name}
+                          onChange={handleChange}
+                          placeholder="Full Name"
+                          className="w-full bg-black/30 border border-white/10 text-white placeholder:text-white/30
+                                     px-4 py-4 outline-none focus:border-[var(--main)] transition-all"
+                        />
+
+                        <input
+                          type="email"
+                          name="email"
+                          required
+                          value={formData.email}
+                          onChange={handleChange}
+                          placeholder="Email Address"
+                          className="w-full bg-black/30 border border-white/10 text-white placeholder:text-white/30
+                                     px-4 py-4 outline-none focus:border-[var(--main)] transition-all"
+                        />
+                      </div>
+
                       <input
                         type="text"
-                        placeholder="Full Name"
+                        name="subject"
+                        value={formData.subject}
+                        onChange={handleChange}
+                        placeholder="Subject"
                         className="w-full bg-black/30 border border-white/10 text-white placeholder:text-white/30
                                    px-4 py-4 outline-none focus:border-[var(--main)] transition-all"
                       />
 
-                      <input
-                        type="email"
-                        placeholder="Email Address"
+                      <textarea
+                        name="message"
+                        required
+                        value={formData.message}
+                        onChange={handleChange}
+                        placeholder="Your Message..."
+                        rows={6}
                         className="w-full bg-black/30 border border-white/10 text-white placeholder:text-white/30
-                                   px-4 py-4 outline-none focus:border-[var(--main)] transition-all"
+                                   px-4 py-4 outline-none focus:border-[var(--main)] transition-all resize-none"
                       />
-                    </div>
 
-                    <input
-                      type="text"
-                      placeholder="Subject"
-                      className="w-full bg-black/30 border border-white/10 text-white placeholder:text-white/30
-                                 px-4 py-4 outline-none focus:border-[var(--main)] transition-all"
-                    />
+                      {status === "error" && (
+                        <p className="text-red-400 text-sm">{errorMsg}</p>
+                      )}
 
-                    <textarea
-                      placeholder="Your Message..."
-                      rows={6}
-                      className="w-full bg-black/30 border border-white/10 text-white placeholder:text-white/30
-                                 px-4 py-4 outline-none focus:border-[var(--main)] transition-all resize-none"
-                    />
-
-                    <button
-                      type="submit"
-                      className="bg-[var(--main)] text-white font-black uppercase tracking-widest px-10 py-4
-                                 hover:bg-[var(--main-dark)] transition-all duration-300 w-fit"
-                    >
-                      Send Message
-                    </button>
-                  </form>
+                      <button
+                        type="submit"
+                        disabled={status === "submitting"}
+                        className="bg-[var(--main)] text-white font-black uppercase tracking-widest px-10 py-4
+                                   hover:bg-[var(--main-dark)] transition-all duration-300 w-fit disabled:opacity-60"
+                      >
+                        {status === "submitting" ? "Sending..." : "Send Message"}
+                      </button>
+                    </form>
+                  )}
 
                   {/* Extra Message */}
                   <div className="border border-white/10 bg-black/20 p-6">
                     <p className="text-white/70 leading-relaxed">
                       Prefer email? Reach us at{" "}
                       <span className="text-white font-bold">
-                        contact@offair.com
+                        info@offairwp.com
                       </span>
                     </p>
                   </div>

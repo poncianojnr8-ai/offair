@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { db, storage } from "../../../firebase";
 import {
   doc,
@@ -7,11 +7,19 @@ import {
   addDoc,
   updateDoc,
   collection,
+  getDocs,
+  query,
+  orderBy,
   serverTimestamp,
 } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { ArrowLeft, Image as ImageIcon, Loader2 } from "lucide-react";
 import RichTextEditor from "../../../components/Editor/RichTextEditor";
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 const CreateEditInterview = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +28,9 @@ const CreateEditInterview = () => {
 
   const [title, setTitle] = useState("");
   const [guest, setGuest] = useState("");
+  const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [existingImageUrl, setExistingImageUrl] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string>("");
@@ -37,6 +48,30 @@ const CreateEditInterview = () => {
     return getDownloadURL(storageRef);
   }, []);
 
+  // Fetch categories from the shared categories collection
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const q = query(
+          collection(db, "categories"),
+          orderBy("createdAt", "desc")
+        );
+        const snapshot = await getDocs(q);
+        setCategories(
+          snapshot.docs.map((d) => ({
+            id: d.id,
+            name: (d.data() as { name: string }).name,
+          }))
+        );
+      } catch (err) {
+        console.error("Error fetching categories:", err);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, []);
+
   // Load existing interview in edit mode
   useEffect(() => {
     if (!isEditMode || !id) return;
@@ -49,6 +84,7 @@ const CreateEditInterview = () => {
           const data = docSnap.data();
           setTitle(data.title || "");
           setGuest(data.guest || "");
+          setCategory(data.category || "");
           setExistingImageUrl(data.image || "");
           setImagePreview(data.image || "");
           setIsFeatured(data.isFeatured ?? false);
@@ -96,6 +132,7 @@ const CreateEditInterview = () => {
       const itemData = {
         title: title.trim(),
         guest: guest.trim(),
+        category,
         image: imageUrl,
         body,
         isFeatured,
@@ -107,6 +144,7 @@ const CreateEditInterview = () => {
       } else {
         await addDoc(collection(db, "interviews"), {
           ...itemData,
+          views: 0,
           createdAt: serverTimestamp(),
         });
       }
@@ -191,6 +229,47 @@ const CreateEditInterview = () => {
                 placeholder="e.g. PJ, Various Artists..."
                 className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white outline-none focus:border-[var(--main)] transition-all text-sm"
               />
+            </div>
+
+            {/* Category */}
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
+                Category
+              </label>
+              {loadingCategories ? (
+                <div className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white/20 text-xs animate-pulse uppercase tracking-widest">
+                  Loading categories...
+                </div>
+              ) : categories.length === 0 ? (
+                <div className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white/30 text-xs">
+                  No categories found.{" "}
+                  <Link
+                    to="/admin/categories"
+                    className="text-[var(--main)] hover:text-white underline"
+                  >
+                    Add one first →
+                  </Link>
+                </div>
+              ) : (
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white outline-none focus:border-[var(--main)] transition-all cursor-pointer appearance-none text-sm"
+                >
+                  <option value="" className="bg-[var(--bg-secondary)]">
+                    Select a category...
+                  </option>
+                  {categories.map((cat) => (
+                    <option
+                      key={cat.id}
+                      value={cat.name}
+                      className="bg-[var(--bg-secondary)]"
+                    >
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             {/* Cover Image */}
