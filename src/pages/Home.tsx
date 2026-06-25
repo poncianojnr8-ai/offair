@@ -12,7 +12,6 @@ import {
 
 import Post from "../components/News/Post";
 import Trending from "../components/News/Trending";
-import SocialEmbedModal from "../components/Social/SocialEmbedModal";
 
 import bgImage from "../assets/images/main-bg.png";
 
@@ -59,15 +58,7 @@ const HERO_POSITION: Record<string, string> = {
   center: "inset-0 w-full justify-center items-center text-center",
 };
 
-type SocialPost = {
-  id: string;
-  platform: "tiktok" | "instagram";
-  image: string;
-  caption?: string;
-  link: string;
-};
-
-// Social handles (used for the "follow" fallback + card labels)
+// Social handles (used for the profile links)
 const TIKTOK_HANDLE = "poncianojnr8";
 const INSTAGRAM_HANDLE = "offairwithponciano";
 
@@ -107,10 +98,6 @@ const Home = () => {
   const [trendPage, setTrendPage] = useState(1);
   const [trendSearch, setTrendSearch] = useState("");
 
-  // Social posts (TikTok / Instagram cards)
-  const [socialPosts, setSocialPosts] = useState<SocialPost[]>([]);
-  const [activePost, setActivePost] = useState<SocialPost | null>(null);
-
   // Newsletter
   const [email, setEmail] = useState("");
   const [newsletterStatus, setNewsletterStatus] = useState<
@@ -132,26 +119,7 @@ const Home = () => {
       }
     };
 
-    const fetchSocial = async () => {
-      try {
-        const q = query(
-          collection(db, "socialPosts"),
-          orderBy("createdAt", "desc")
-        );
-        const snapshot = await getDocs(q);
-        setSocialPosts(
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-          })) as SocialPost[]
-        );
-      } catch (error) {
-        console.error("Error fetching social posts:", error);
-      }
-    };
-
     fetchPosts();
-    fetchSocial();
   }, []);
 
   // ── Hero slides + Trending, derived from flagged posts ────────────────────
@@ -254,7 +222,6 @@ const Home = () => {
   const hero = slides[currentSlide] ?? fallbackSlide;
 
   return (
-    <>
     <div className="w-full">
 
       {/* ── Hero Slider ──────────────────────────────────────────────────── */}
@@ -490,81 +457,8 @@ const Home = () => {
             </div>
           </div>
 
-          {socialPosts.length > 0 ? (
-            <>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
-                {socialPosts.slice(0, 8).map((post) => (
-                  <button
-                    key={post.id}
-                    type="button"
-                    onClick={() => setActivePost(post)}
-                    className="group bg-[var(--bg-secondary)] border border-white/5 overflow-hidden text-left w-full"
-                  >
-                    <div className="aspect-square relative overflow-hidden">
-                      <img
-                        src={post.image}
-                        alt={post.caption || post.platform}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute inset-0 bg-black/25 group-hover:bg-black/10 transition-all duration-300" />
-                      <span className="absolute top-2.5 left-2.5 flex items-center gap-1.5 bg-black/70 text-white text-[9px] font-bold uppercase tracking-widest px-2 py-1">
-                        {post.platform === "tiktok" ? (
-                          <TikTokGlyph size={11} />
-                        ) : (
-                          <InstagramIcon size={11} />
-                        )}
-                        {post.platform}
-                      </span>
-                    </div>
-                    <div className="p-3 sm:p-4 flex items-center justify-between gap-2">
-                      <p className="text-white/60 text-[11px] sm:text-xs line-clamp-1">
-                        {post.caption ||
-                          `@${post.platform === "tiktok" ? TIKTOK_HANDLE : INSTAGRAM_HANDLE}`}
-                      </p>
-                      <span className="text-[var(--main)] text-[10px] uppercase tracking-widest font-black shrink-0 group-hover:text-white transition-colors">
-                        View →
-                      </span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              {/* View More row */}
-              <div className="flex justify-end mt-6 sm:mt-8">
-                <div className="flex items-center gap-5">
-                  <a
-                    href={`https://www.tiktok.com/@${TIKTOK_HANDLE}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-white/30 hover:text-white transition-colors text-[10px] uppercase tracking-[0.2em]"
-                  >
-                    <TikTokGlyph size={12} />
-                    TikTok
-                  </a>
-                  <a
-                    href={`https://www.instagram.com/${INSTAGRAM_HANDLE}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 text-white/30 hover:text-white transition-colors text-[10px] uppercase tracking-[0.2em]"
-                  >
-                    <InstagramIcon size={12} />
-                    Instagram
-                  </a>
-                  <span className="w-px h-3 bg-white/10" />
-                  <a
-                    href={`https://www.tiktok.com/@${TIKTOK_HANDLE}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[var(--main)] text-[10px] uppercase tracking-[0.2em] font-black hover:opacity-70 transition-opacity"
-                  >
-                    View More →
-                  </a>
-                </div>
-              </div>
-            </>
-          ) : (
-            // Fallback: follow cards when no posts have been added yet
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          {/* Profile links — live feeds can be added later via a widget/API */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               <a
                 href={`https://www.tiktok.com/@${TIKTOK_HANDLE}`}
                 target="_blank"
@@ -603,7 +497,6 @@ const Home = () => {
                 </div>
               </a>
             </div>
-          )}
         </div>
       </section>
 
@@ -665,9 +558,6 @@ const Home = () => {
       </section>
 
     </div>
-
-    <SocialEmbedModal post={activePost} onClose={() => setActivePost(null)} />
-    </>
   );
 };
 
