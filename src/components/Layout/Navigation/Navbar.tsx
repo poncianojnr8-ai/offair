@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
-import logo from "../../../assets/images/logo.png";
 import logoMain from "../../../assets/images/logo-main.png";
 
 const Navbar = () => {
@@ -73,7 +72,7 @@ const Navbar = () => {
             {/* Logo on left */}
             <Link to="/" className="shrink-0">
               <img
-                src={logo}
+                src={logoMain}
                 alt="Logo"
                 className={`transition-all duration-500 object-contain ${
                   isScrolled ? "h-12" : "h-16"
@@ -109,7 +108,7 @@ const Navbar = () => {
         >
           <Link to="/" onClick={() => setOpen(false)}>
             <img
-              src={logo}
+              src={logoMain}
               alt="Logo"
               className="h-16 object-contain"
             />

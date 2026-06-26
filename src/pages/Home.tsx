@@ -393,10 +393,6 @@ const Home = () => {
                       PJ's Picks
                     </h3>
 
-                    <p className="text-white text-sm font-bold">
-                      Latest curated playlist from PJ — tap play to listen.
-                    </p>
-
                     <div className="w-full overflow-hidden border border-white/30">
                       <iframe
                         title="PJ Picks Spotify"

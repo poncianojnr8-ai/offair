@@ -28,6 +28,7 @@ const CreateEditInterview = () => {
 
   const [title, setTitle] = useState("");
   const [guest, setGuest] = useState("");
+  const [author, setAuthor] = useState("");
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -84,6 +85,7 @@ const CreateEditInterview = () => {
           const data = docSnap.data();
           setTitle(data.title || "");
           setGuest(data.guest || "");
+          setAuthor(data.author || "");
           setCategory(data.category || "");
           setExistingImageUrl(data.image || "");
           setImagePreview(data.image || "");
@@ -132,6 +134,7 @@ const CreateEditInterview = () => {
       const itemData = {
         title: title.trim(),
         guest: guest.trim(),
+        author: author.trim(),
         category,
         image: imageUrl,
         body,
@@ -227,6 +230,19 @@ const CreateEditInterview = () => {
                 value={guest}
                 onChange={(e) => setGuest(e.target.value)}
                 placeholder="e.g. PJ, Various Artists..."
+                className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white outline-none focus:border-[var(--main)] transition-all text-sm"
+              />
+            </div>
+
+            {/* Author */}
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
+                Author
+              </label>
+              <input
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                placeholder="e.g. Ponciano"
                 className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white outline-none focus:border-[var(--main)] transition-all text-sm"
               />
             </div>

@@ -27,6 +27,7 @@ const CreateEditPost = () => {
   const isEditMode = Boolean(id);
 
   const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
   const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
@@ -89,6 +90,7 @@ const CreateEditPost = () => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setTitle(data.title || "");
+          setAuthor(data.author || "");
           setCategory(data.category || "");
           setExistingImageUrl(data.image || "");
           setImagePreview(data.image || "");
@@ -158,6 +160,7 @@ const CreateEditPost = () => {
       if (isEditMode && id) {
         await updateDoc(doc(db, "posts", id), {
           title,
+          author: author.trim(),
           category,
           image: imageUrl,
           body,
@@ -166,6 +169,7 @@ const CreateEditPost = () => {
       } else {
         await addDoc(collection(db, "posts"), {
           title,
+          author: author.trim(),
           category,
           image: imageUrl,
           body,
@@ -246,6 +250,19 @@ const CreateEditPost = () => {
 
           {/* Right Column — Meta & Image */}
           <div className="space-y-6">
+            {/* Author */}
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">
+                Author
+              </label>
+              <input
+                value={author}
+                onChange={(e) => setAuthor(e.target.value)}
+                placeholder="e.g. Ponciano"
+                className="w-full bg-[var(--bg-secondary)] border border-white/10 p-3 text-white outline-none focus:border-[var(--main)] transition-all text-sm"
+              />
+            </div>
+
             {/* Category */}
             <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">

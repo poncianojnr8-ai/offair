@@ -30,6 +30,7 @@ interface InterviewData {
   id: string;
   title: string;
   guest?: string;
+  author?: string;
   category?: string;
   date?: string;
   image: string;
@@ -171,6 +172,9 @@ const InterviewDetail = () => {
             <span className="text-white/60">{item.category}</span>
           )}
           {item.guest && <span className="text-white/60">{item.guest}</span>}
+          {item.author && (
+            <span className="text-white/40">By {item.author}</span>
+          )}
           {item.date && <span className="text-white/40">{item.date}</span>}
           {typeof item.views === "number" && (
             <span className="text-white/40">

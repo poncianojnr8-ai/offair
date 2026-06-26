@@ -27,6 +27,7 @@ interface PostData {
   id: string;
   title: string;
   category: string;
+  author?: string;
   date: string;
   image: string;
   body?: string;
@@ -128,6 +129,9 @@ const PostDetail = () => {
               <span className="bg-[var(--main)] text-white px-3 py-1 font-black">
                 {post.category}
               </span>
+              {post.author && (
+                <span className="text-white/60">By {post.author}</span>
+              )}
               <span className="text-white/60">{post.date}</span>
             </div>
             <h1 className="font-[var(--style-font)] text-white tracking-tighter leading-[0.95] text-[1.6rem] sm:text-[2.5rem] md:text-[4rem] drop-shadow-[0_2px_20px_rgba(0,0,0,0.6)]">
